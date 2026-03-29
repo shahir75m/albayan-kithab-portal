@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { ClassData, Student, Book, Order } from '../types';
-import { CLASSES as INITIAL_CLASSES, STUDENTS as INITIAL_STUDENTS } from '../data';
 
 interface DataContextType {
   classes: ClassData[];
@@ -18,90 +17,95 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [classes, setClasses] = useState<ClassData[]>(INITIAL_CLASSES);
-  const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
+  const [classes, setClasses] = useState<ClassData[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
 
-  const addStudent = (name: string, classId: number) => {
-    const newStudent: Student = {
-      id: `s${Date.now()}`,
-      name,
-      classId,
-    };
-    setStudents(prev => [...prev, newStudent]);
+  useEffect(() => {
+    fetch('/api/classes').then(res => res.json()).then(setClasses);
+    fetch('/api/students').then(res => res.json()).then(setStudents);
+    fetch('/api/orders').then(res => res.json()).then(setOrders);
+  }, []);
+
+  const addStudent = async (name: string, classId: number) => {
+    const res = await fetch('/api/students', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, classId })
+    });
+    if (res.ok) {
+      const newStudent = await res.json();
+      setStudents(prev => [...prev, newStudent]);
+    }
   };
 
-  const deleteStudent = (id: string) => {
+  const deleteStudent = async (id: string) => {
+    await fetch(`/api/students/${id}`, { method: 'DELETE' });
     setStudents(prev => prev.filter(s => s.id !== id));
   };
 
-  const addStudentsFromCSV = (csvData: string) => {
+  const addStudentsFromCSV = async (csvData: string) => {
     const lines = csvData.split('\n');
-    const newStudents: Student[] = [];
+    const newStudents: Omit<Student, 'id'>[] = [];
     lines.forEach(line => {
       const [name, classIdStr] = line.split(',').map(s => s.trim());
       if (name && classIdStr) {
         const classId = parseInt(classIdStr);
         if (!isNaN(classId)) {
-          newStudents.push({
-            id: `s${Math.random().toString(36).substr(2, 9)}`,
-            name,
-            classId,
-          });
+          newStudents.push({ name, classId });
         }
       }
     });
-    setStudents(prev => [...prev, ...newStudents]);
-  };
 
-  const addBook = (classId: number, name: string, price: number) => {
-    setClasses(prev => prev.map(cls => {
-      if (cls.id === classId) {
-        return {
-          ...cls,
-          books: [...cls.books, { id: `${classId}-${Date.now()}`, name, price }]
-        };
-      }
-      return cls;
-    }));
-  };
-
-  const deleteBook = (classId: number, bookId: string) => {
-    setClasses(prev => prev.map(cls => {
-      if (cls.id === classId) {
-        return {
-          ...cls,
-          books: cls.books.filter(b => b.id !== bookId)
-        };
-      }
-      return cls;
-    }));
-  };
-
-  const updateBookPrice = (classId: number, bookId: string, newPrice: number) => {
-    setClasses(prev => prev.map(cls => {
-      if (cls.id === classId) {
-        return {
-          ...cls,
-          books: cls.books.map(b => b.id === bookId ? { ...b, price: newPrice } : b)
-        };
-      }
-      return cls;
-    }));
-  };
-
-  const placeOrder = (studentId: string, bookIds: string[], totalPrice: number) => {
-    const newOrder: Order = {
-      id: `o${Date.now()}`,
-      studentId,
-      bookIds,
-      totalPrice,
-      date: new Date().toISOString()
-    };
-    setOrders(prev => {
-      const filteredOrders = prev.filter(order => order.studentId !== studentId);
-      return [...filteredOrders, newOrder];
+    const res = await fetch('/api/students/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ students: newStudents })
     });
+    if (res.ok) {
+      fetch('/api/students').then(r => r.json()).then(setStudents);
+    }
+  };
+
+  const addBook = async (classId: number, name: string, price: number) => {
+    const res = await fetch(`/api/classes/${classId}/books`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, price })
+    });
+    if (res.ok) {
+      const newBook = await res.json();
+      setClasses(prev => prev.map(cls => cls.id === classId ? { ...cls, books: [...cls.books, newBook] } : cls));
+    }
+  };
+
+  const deleteBook = async (classId: number, bookId: string) => {
+    await fetch(`/api/classes/${classId}/books/${bookId}`, { method: 'DELETE' });
+    setClasses(prev => prev.map(cls => cls.id === classId ? { ...cls, books: cls.books.filter(b => b.id !== bookId) } : cls));
+  };
+
+  const updateBookPrice = async (classId: number, bookId: string, newPrice: number) => {
+    await fetch(`/api/classes/${classId}/books/${bookId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ price: newPrice })
+    });
+    setClasses(prev => prev.map(cls => cls.id === classId ? { ...cls, books: cls.books.map(b => b.id === bookId ? { ...b, price: newPrice } : b) } : cls));
+  };
+
+  const placeOrder = async (studentId: string, bookIds: string[], totalPrice: number) => {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentId, bookIds, totalPrice })
+    });
+    if (res.ok) {
+      const newOrder = await res.json();
+      setOrders(prev => {
+        const filtered = prev.filter(o => o.studentId !== studentId);
+        return [...filtered, newOrder];
+      });
+    }
   };
 
   return (
