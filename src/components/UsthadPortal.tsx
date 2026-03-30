@@ -62,10 +62,16 @@ export default function UsthadPortal() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         const text = event.target?.result as string;
-        addStudentsFromCSV(text);
-        alert('Students added successfully from CSV!');
+        try {
+          await addStudentsFromCSV(text);
+          alert('Students added successfully from CSV!');
+        } catch (err) {
+          alert('Failed to add students. Please check the CSV format.');
+        }
+        // Reset file input so the same file can be re-uploaded if needed
+        e.target.value = '';
       };
       reader.readAsText(file);
     }

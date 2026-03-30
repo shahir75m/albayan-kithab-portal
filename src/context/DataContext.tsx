@@ -61,7 +61,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const addStudentsFromCSV = async (csvData: string) => {
-    const lines = csvData.split('\n');
+    // Normalize line endings (handle Windows \r\n and Mac \r)
+    const normalized = csvData.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalized.split('\n');
     const newStudents: Omit<Student, 'id'>[] = [];
     lines.forEach(line => {
       const [name, classIdStr] = line.split(',').map(s => s.trim());
@@ -73,13 +75,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
     });
 
+    if (newStudents.length === 0) {
+      throw new Error('No valid students found in CSV. Format: Name,ClassId');
+    }
+
     const res = await fetch('/api/students/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ students: newStudents })
     });
     if (res.ok) {
-      fetch('/api/students').then(r => r.json()).then(setStudents);
+      const updated = await fetch('/api/students');
+      if (updated.ok) setStudents(await updated.json());
+    } else {
+      throw new Error('API call failed');
     }
   };
 
