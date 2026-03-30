@@ -4,7 +4,8 @@ import { Student, Book } from '../types';
 import { 
   Users, BookOpen, TrendingUp, ShieldCheck, Search, 
   ChevronRight, FileText, CheckCircle2, Plus, Trash2, 
-  Upload, Settings, X, Save, Edit3, LayoutDashboard, User, ArrowLeft
+  Upload, Settings, X, Save, Edit3, LayoutDashboard, User, ArrowLeft,
+  Check
 } from 'lucide-react';
 
 export default function UsthadPortal() {
@@ -31,23 +32,10 @@ export default function UsthadPortal() {
     return selectedClass ? students.filter(s => s.classId === selectedClass) : [];
   }, [selectedClass, students]);
 
-  const studentOrder = useMemo(() => {
-    if (!selectedStudent) return null;
-    return orders.find(o => o.studentId === selectedStudent.id) || null;
-  }, [selectedStudent, orders]);
-
-  const studentBooks = useMemo(() => {
-    if (!selectedStudent) return [];
-    const classData = classes.find(c => c.id === selectedStudent.classId);
-    if (!classData) return [];
-    
-    // If the student has an order, show only the ordered books
-    if (studentOrder) {
-      return classData.books.filter(book => studentOrder.bookIds.includes(book.id));
-    }
-    
-    return classData.books;
-  }, [selectedStudent, classes, studentOrder]);
+  const classBooks = useMemo(() => {
+    if (!selectedClass) return [];
+    return classes.find(c => c.id === selectedClass)?.books || [];
+  }, [selectedClass, classes]);
 
   const totalOrdersCount = useMemo(() => {
     return orders.length;
@@ -168,168 +156,139 @@ export default function UsthadPortal() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            {/* Left Column: Class & Student Selection */}
-            <div className="lg:col-span-1 space-y-10">
-              {!selectedClass ? (
-                <section className="space-y-6">
-                  <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                    <div className="p-2.5 bg-primary/10 rounded-2xl">
-                      <BookOpen className="w-6 h-6 text-primary" />
-                    </div>
-                    Select Class
-                  </h3>
-                  <div className="space-y-3">
-                    {classes.map((cls) => (
-                      <button
-                        key={cls.id}
-                        onClick={() => {
-                          setSelectedClass(cls.id);
-                          setSelectedStudent(null);
-                        }}
-                        className={`w-full flex items-center justify-between py-5 px-8 rounded-[1.5rem] font-black text-lg transition-all border-2 group bg-white/40 text-slate-600 border-white/60 hover:border-primary/40 backdrop-blur-md shadow-lg shadow-slate-200/40 hover:bg-white/60`}
-                      >
-                        <span className="flex items-center gap-4">
-                          <span className="w-10 h-10 rounded-2xl flex items-center justify-center text-sm bg-primary/10 text-primary">
-                            {cls.id}
-                          </span>
-                          Class {cls.id}
-                        </span>
-                        <ChevronRight className="w-5 h-5 transition-transform opacity-0 group-hover:opacity-100 translate-x-0 group-hover:translate-x-1" />
-                      </button>
-                    ))}
+          <div className="space-y-10">
+            {!selectedClass ? (
+              <section className="space-y-6">
+                <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+                  <div className="p-2.5 bg-primary/10 rounded-2xl">
+                    <BookOpen className="w-6 h-6 text-primary" />
                   </div>
-                </section>
-              ) : (
-                <section className="space-y-6 animate-in">
-                  <div className="flex items-center gap-3 mb-2">
+                  Select Class to View Orders
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                  {classes.map((cls) => (
+                    <button
+                      key={cls.id}
+                      onClick={() => setSelectedClass(cls.id)}
+                      className={`flex items-center justify-between py-8 px-8 rounded-[2rem] font-black text-xl transition-all border-2 group bg-white/40 text-slate-600 border-white/60 hover:border-primary/40 backdrop-blur-md shadow-lg shadow-slate-200/40 hover:bg-white/60 hover:-translate-y-1`}
+                    >
+                      <span className="flex items-center gap-4">
+                        <span className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl bg-primary/10 text-primary">
+                          {cls.id}
+                        </span>
+                        Class {cls.id}
+                      </span>
+                      <ChevronRight className="w-6 h-6 transition-transform opacity-0 group-hover:opacity-100 translate-x-0 group-hover:translate-x-1" />
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : (
+              <section className="space-y-8 animate-in">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
                     <button 
-                      onClick={() => {
-                        setSelectedClass(null);
-                        setSelectedStudent(null);
-                      }}
+                      onClick={() => setSelectedClass(null)}
                       className="p-3 bg-white/60 hover:bg-white rounded-2xl shadow-sm transition-all hover:scale-105"
                     >
                       <ArrowLeft className="w-6 h-6 text-slate-600" />
                     </button>
-                    <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
-                      <div className="p-2 bg-primary/10 rounded-xl">
-                        <Users className="w-5 h-5 text-primary" />
-                      </div>
-                      Class {selectedClass}
+                    <h3 className="text-3xl font-black text-slate-800 flex items-center gap-3">
+                      Class {selectedClass} Order Overview
                     </h3>
                   </div>
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto pr-3 no-scrollbar">
-                    {filteredStudents.length > 0 ? (
-                      filteredStudents.map((student) => {
-                        const hasOrder = orders.some(o => o.studentId === student.id);
-                        return (
-                          <button
-                            key={student.id}
-                            onClick={() => setSelectedStudent(student)}
-                            className={`w-full flex items-center justify-between py-5 px-8 rounded-[1.5rem] font-black transition-all border-2 text-left group ${
-                              selectedStudent?.id === student.id
-                                ? 'bg-primary text-white border-primary shadow-2xl shadow-emerald-500/30 scale-[1.01]'
-                                : 'bg-white/40 text-slate-600 border-white/60 hover:border-primary/40 backdrop-blur-md shadow-lg shadow-slate-200/40 hover:bg-white/60'
-                            }`}
-                          >
-                            <span className="flex items-center gap-4">
-                              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
-                                selectedStudent?.id === student.id ? 'bg-white/20' : 'bg-slate-100 text-slate-400'
-                              }`}>
-                                <User className="w-5 h-5" />
+                  <div className="px-6 py-3 bg-primary/10 text-primary rounded-2xl font-black border border-primary/20">
+                    {filteredStudents.length} Students
+                  </div>
+                </div>
+
+                <div className="glass-card rounded-[2.5rem] overflow-hidden border-white/40 shadow-2xl">
+                  <div className="overflow-x-auto no-scrollbar">
+                    <table className="w-full text-left border-collapse min-w-[800px]">
+                      <thead>
+                        <tr className="bg-slate-50/50 backdrop-blur-md border-b border-white/40">
+                          <th className="p-6 font-black text-slate-400 uppercase text-[10px] tracking-widest sticky left-0 bg-slate-50/50 z-10 w-16">#</th>
+                          <th className="p-6 font-black text-slate-400 uppercase text-[10px] tracking-widest sticky left-16 bg-slate-50/50 z-10 min-w-[200px]">Student Name</th>
+                          {classBooks.map(book => (
+                            <th key={book.id} className="p-6 font-black text-slate-400 uppercase text-[10px] tracking-widest text-center min-w-[150px]">
+                              <div className="space-y-1">
+                                <div className="text-slate-800 text-[11px] truncate">{book.name}</div>
+                                <div className="text-primary font-black">₹{book.price}</div>
                               </div>
-                              {student.name}
-                            </span>
-                            <div className="flex items-center gap-3">
-                              {hasOrder && (
-                                <span className={`w-2 h-2 rounded-full ${selectedStudent?.id === student.id ? 'bg-white' : 'bg-emerald-500'}`} />
-                              )}
-                              <ChevronRight className={`w-5 h-5 transition-transform ${selectedStudent?.id === student.id ? 'translate-x-1' : 'opacity-0 group-hover:opacity-100'}`} />
+                            </th>
+                          ))}
+                          <th className="p-6 font-black text-slate-400 uppercase text-[10px] tracking-widest text-right min-w-[120px]">Total Pay</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/20">
+                        {filteredStudents.map((student, idx) => {
+                          const order = orders.find(o => o.studentId === student.id);
+                          return (
+                            <tr key={student.id} className="hover:bg-primary/5 transition-colors group">
+                              <td className="p-6 font-bold text-slate-400 text-sm sticky left-0 bg-white/40 backdrop-blur-sm group-hover:bg-primary/5">{idx + 1}</td>
+                              <td className="p-6 font-black text-slate-700 sticky left-16 bg-white/40 backdrop-blur-sm group-hover:bg-primary/5">{student.name}</td>
+                              {classBooks.map(book => {
+                                const isOrdered = order?.bookIds.includes(book.id);
+                                return (
+                                  <td key={book.id} className="p-6 text-center">
+                                    {isOrdered ? (
+                                      <div className="flex items-center justify-center">
+                                        <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                                          <Check className="w-5 h-5 stroke-[3px]" />
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <span className="text-slate-300 font-bold">-</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                              <td className="p-6 text-right">
+                                <span className="font-black text-primary text-lg">₹{order?.totalPrice || 0}</span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                      <tfoot className="bg-slate-50/80 backdrop-blur-xl border-t-2 border-primary/10">
+                        <tr>
+                          <td colSpan={2} className="p-6 font-black text-slate-800 text-sm uppercase tracking-widest text-right pr-10">Total Orders Quantity</td>
+                          {classBooks.map(book => {
+                            const count = filteredStudents.filter(s => orders.find(o => o.studentId === s.id)?.bookIds.includes(book.id)).length;
+                            return (
+                              <td key={book.id} className="p-6 text-center">
+                                <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-white border-2 border-primary/20 font-black text-primary shadow-sm">
+                                  {count}
+                                </div>
+                              </td>
+                            );
+                          })}
+                          <td className="p-6 text-right">
+                            <div className="font-black text-slate-800 text-sm uppercase">Orders</div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colSpan={2} className="p-6 font-black text-slate-800 text-sm uppercase tracking-widest text-right pr-10">Total Price Sum</td>
+                          {classBooks.map(book => {
+                            const count = filteredStudents.filter(s => orders.find(o => o.studentId === s.id)?.bookIds.includes(book.id)).length;
+                            return (
+                              <td key={book.id} className="p-6 text-center">
+                                <div className="font-black text-primary text-lg">₹{count * book.price}</div>
+                              </td>
+                            );
+                          })}
+                          <td className="p-6 text-right">
+                            <div className="font-black text-emerald-600 text-xl">
+                              ₹{filteredStudents.reduce((sum, s) => sum + (orders.find(o => o.studentId === s.id)?.totalPrice || 0), 0)}
                             </div>
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <div className="py-16 text-center text-slate-400 font-black bg-white/30 rounded-[2rem] border-2 border-dashed border-slate-200">
-                        No students found
-                      </div>
-                    )}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
                   </div>
-                </section>
-              )}
-            </div>
-
-            {/* Right Column: Order Details */}
-            <div className="lg:col-span-2 space-y-8">
-              <section className="h-full">
-                <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-primary/10 rounded-xl">
-                    <FileText className="w-5 h-5 text-primary" />
-                  </div>
-                  Order Details
-                </h3>
-                
-                {selectedStudent ? (
-                  <div className="glass-card rounded-3xl p-8 space-y-8 animate-in">
-                    <div className="flex flex-col md:flex-row justify-between items-start gap-4 border-b border-slate-100 pb-8">
-                      <div>
-                        <h4 className="text-3xl font-black text-slate-800">{selectedStudent.name}</h4>
-                        <p className="text-slate-500 font-bold mt-1">Class {selectedStudent.classId} • Student ID: {selectedStudent.id}</p>
-                      </div>
-                      {studentOrder ? (
-                        <div className="px-5 py-2 rounded-2xl text-xs font-black uppercase tracking-widest border bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
-                          Order Placed
-                        </div>
-                      ) : (
-                        <div className="bg-slate-500/10 text-slate-500 px-5 py-2 rounded-2xl text-xs font-black uppercase tracking-widest border border-slate-500/20">
-                          No Order
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-6">
-                      <h5 className="font-black text-slate-800 flex items-center gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-primary" />
-                        {studentOrder ? 'Ordered Books' : 'Class Books (No Order Yet)'}
-                      </h5>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {studentBooks.map((book) => (
-                          <div key={book.id} className="flex items-center justify-between p-5 bg-white/50 rounded-2xl border border-white/20 backdrop-blur-sm">
-                            <span className="font-bold text-slate-700">{book.name}</span>
-                            <span className="text-primary font-black">₹{book.price}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6">
-                      <div className="text-center md:text-left">
-                        <p className="text-xs text-slate-400 font-black uppercase tracking-widest">
-                          {studentOrder ? 'Order Total' : 'Full Set Price'}
-                        </p>
-                        <p className="text-4xl font-black text-primary">
-                          ₹{studentOrder ? studentOrder.totalPrice : studentBooks.reduce((s, b) => s + b.price, 0)}
-                        </p>
-                      </div>
-                      {studentOrder && (
-                        <div className="flex items-center gap-2 text-emerald-600 font-black text-lg bg-emerald-500/10 px-8 py-4 rounded-2xl border border-emerald-500/20">
-                          <CheckCircle2 className="w-6 h-6" />
-                          Order Placed
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="glass-card rounded-3xl h-[500px] flex flex-col items-center justify-center text-slate-400 space-y-4 border-dashed border-2">
-                    <div className="p-6 bg-slate-100 rounded-full">
-                      <Search className="w-16 h-16 opacity-20" />
-                    </div>
-                    <p className="font-black text-xl">Select a student to view their order</p>
-                  </div>
-                )}
+                </div>
               </section>
-            </div>
+            )}
           </div>
         </>
       ) : (
