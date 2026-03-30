@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useData } from '../context/DataContext';
-import { Student, Book } from '../types';
+import { Student, Book, ClassData, Order } from '../types';
 import { 
   Users, BookOpen, TrendingUp, ShieldCheck, Search, 
   ChevronRight, FileText, CheckCircle2, Plus, Trash2, 
@@ -29,16 +29,22 @@ export default function UsthadPortal() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredStudents = useMemo(() => {
-    return selectedClass ? students.filter(s => s.classId === selectedClass) : [];
+    return selectedClass ? students.filter((s: Student) => s.classId === selectedClass) : [];
   }, [selectedClass, students]);
 
   const classBooks = useMemo(() => {
     if (!selectedClass) return [];
-    return classes.find(c => c.id === selectedClass)?.books || [];
+    return classes.find((c: ClassData) => c.id === selectedClass)?.books || [];
   }, [selectedClass, classes]);
 
   const totalOrdersCount = useMemo(() => {
     return orders.length;
+  }, [orders]);
+
+  const ordersMap = useMemo(() => {
+    const map = new Map<string, any>();
+    orders.forEach(o => map.set(o.studentId, o));
+    return map;
   }, [orders]);
 
   if (loading) {
@@ -221,13 +227,13 @@ export default function UsthadPortal() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/20">
-                        {filteredStudents.map((student, idx) => {
-                          const order = orders.find(o => o.studentId === student.id);
+                        {filteredStudents.map((student: Student, idx: number) => {
+                          const order = ordersMap.get(student.id);
                           return (
                             <tr key={student.id} className="hover:bg-primary/5 transition-colors group">
                               <td className="p-6 font-bold text-slate-400 text-sm sticky left-0 bg-white/40 backdrop-blur-sm group-hover:bg-primary/5">{idx + 1}</td>
                               <td className="p-6 font-black text-slate-700 sticky left-16 bg-white/40 backdrop-blur-sm group-hover:bg-primary/5">{student.name}</td>
-                              {classBooks.map(book => {
+                              {classBooks.map((book: Book) => {
                                 const isOrdered = order?.bookIds.includes(book.id);
                                 return (
                                   <td key={book.id} className="p-6 text-center">
@@ -253,8 +259,8 @@ export default function UsthadPortal() {
                       <tfoot className="bg-slate-50/80 backdrop-blur-xl border-t-2 border-primary/10">
                         <tr>
                           <td colSpan={2} className="p-6 font-black text-slate-800 text-sm uppercase tracking-widest text-right pr-10">Total Orders Quantity</td>
-                          {classBooks.map(book => {
-                            const count = filteredStudents.filter(s => orders.find(o => o.studentId === s.id)?.bookIds.includes(book.id)).length;
+                          {classBooks.map((book: Book) => {
+                            const count = filteredStudents.filter((s: Student) => ordersMap.get(s.id)?.bookIds.includes(book.id)).length;
                             return (
                               <td key={book.id} className="p-6 text-center">
                                 <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-white border-2 border-primary/20 font-black text-primary shadow-sm">
@@ -269,8 +275,8 @@ export default function UsthadPortal() {
                         </tr>
                         <tr>
                           <td colSpan={2} className="p-6 font-black text-slate-800 text-sm uppercase tracking-widest text-right pr-10">Total Price Sum</td>
-                          {classBooks.map(book => {
-                            const count = filteredStudents.filter(s => orders.find(o => o.studentId === s.id)?.bookIds.includes(book.id)).length;
+                          {classBooks.map((book: Book) => {
+                            const count = filteredStudents.filter((s: Student) => ordersMap.get(s.id)?.bookIds.includes(book.id)).length;
                             return (
                               <td key={book.id} className="p-6 text-center">
                                 <div className="font-black text-primary text-lg">₹{count * book.price}</div>
@@ -279,7 +285,7 @@ export default function UsthadPortal() {
                           })}
                           <td className="p-6 text-right">
                             <div className="font-black text-emerald-600 text-xl">
-                              ₹{filteredStudents.reduce((sum, s) => sum + (orders.find(o => o.studentId === s.id)?.totalPrice || 0), 0)}
+                              ₹{filteredStudents.reduce((sum: number, s: Student) => sum + (ordersMap.get(s.id)?.totalPrice || 0), 0)}
                             </div>
                           </td>
                         </tr>

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
-import { Book, Student } from '../types';
+import { Book, Student, ClassData, Order } from '../types';
 import { Check, ShoppingCart, User, BookOpen, Calculator, ChevronRight, Clock, ArrowLeft } from 'lucide-react';
 
 export default function StudentPortal() {
@@ -9,18 +9,18 @@ export default function StudentPortal() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
 
-  const filteredStudents = useMemo(() => {
-    return selectedClass ? students.filter(s => s.classId === selectedClass) : [];
+  const filteredStudents = useMemo<Student[]>(() => {
+    return selectedClass ? students.filter((s: Student) => s.classId === selectedClass) : [];
   }, [selectedClass, students]);
 
-  const classBooks = useMemo(() => {
-    const classData = classes.find(c => c.id === selectedClass);
+  const classBooks = useMemo<Book[]>(() => {
+    const classData = classes.find((c: ClassData) => c.id === selectedClass);
     return classData ? classData.books : [];
   }, [selectedClass, classes]);
 
-  const studentOrder = useMemo(() => {
+  const studentOrder = useMemo<Order | null>(() => {
     if (!selectedStudent) return null;
-    return orders.find(o => o.studentId === selectedStudent.id);
+    return orders.find((o: Order) => o.studentId === selectedStudent.id) || null;
   }, [selectedStudent, orders]);
 
   const selectedSum = useMemo(() => {
