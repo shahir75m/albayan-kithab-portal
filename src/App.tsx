@@ -32,8 +32,8 @@ const PasswordPrompt = ({ onAuthenticated }: { onAuthenticated: () => void }) =>
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 animate-in">
       <div className="glass-card p-10 rounded-[2.5rem] max-w-md w-full space-y-8 border-primary/20 bg-white/60">
         <div className="text-center space-y-4">
-          <div className="mx-auto w-20 h-20 rounded-full flex items-center justify-center shadow-2xl bg-primary text-white shadow-emerald-500/40">
-            <Lock className="w-10 h-10" />
+          <div className="mx-auto w-24 h-24 rounded-[2rem] flex items-center justify-center shadow-xl bg-white p-2 border border-slate-100 mb-6">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain drop-shadow-sm" />
           </div>
           <h2 className="text-3xl heading-black text-slate-800">Usthad Login</h2>
           <p className="text-slate-500 font-bold">Please enter the password to access the portal.</p>
@@ -65,10 +65,37 @@ export default function App() {
   const [activePortal, setActivePortal] = useState<Portal>('student');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isUsthadAuthenticated, setIsUsthadAuthenticated] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    // Show splash screen for 2.5 seconds
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showSplash) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center animate-in fade-in duration-500 z-[100] fixed inset-0">
+        <div className="w-40 h-40 mb-8 animate-bounce duration-1000">
+          <img src="/logo.png" alt="Logo" className="w-full h-full object-contain drop-shadow-2xl" />
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-4xl font-black text-slate-800 tracking-wider">
+            ALBAYAN KITHAB
+          </h1>
+          <p className="text-primary font-bold tracking-widest uppercase text-sm mt-2">
+            Portal 2026-27
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <DataProvider>
-      <div className="min-h-screen flex transition-colors duration-300 bg-mesh-light text-slate-900">
+      <div className="min-h-screen flex transition-colors duration-300 bg-mesh-light text-slate-900 animate-in fade-in zoom-in-95 duration-700">
         
         {/* Mobile Sidebar Overlay */}
         {isSidebarOpen && (
@@ -83,12 +110,12 @@ export default function App() {
           <div className="h-full flex flex-col p-6">
             {/* Logo */}
             <div className="flex items-center gap-4 mb-14">
-              <div className="bg-primary p-3 rounded-[1.25rem] shadow-xl shadow-emerald-500/40">
-                <BookOpenCheck className="w-7 h-7 text-white" />
+              <div className="w-14 h-14 bg-white rounded-[1.25rem] shadow-xl shadow-slate-200/50 p-1.5 flex items-center justify-center border border-slate-100 flex-shrink-0">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
               </div>
-              <h1 className="text-xl heading-black leading-tight">
-                ALBAYAN KITHAB PORTAL
-                <span className="text-primary block text-sm mt-1">2026-27</span>
+              <h1 className="text-lg heading-black leading-tight">
+                ALBAYAN KITHAB
+                <span className="text-primary block text-sm mt-1">PORTAL 2026-27</span>
               </h1>
             </div>
 
@@ -142,18 +169,18 @@ export default function App() {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Top Header (Mobile Only) */}
-          <header className="lg:hidden h-20 flex items-center justify-between px-8 glass-sidebar sticky top-0 z-30 shadow-lg shadow-slate-200/40">
+          <header className="lg:hidden h-20 flex items-center justify-between px-6 glass-sidebar sticky top-0 z-30 shadow-lg shadow-slate-200/40">
             <div className="flex items-center gap-3">
-              <div className="bg-primary p-2 rounded-xl shadow-lg shadow-emerald-500/20">
-                <BookOpenCheck className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-white rounded-xl shadow-lg shadow-slate-200/50 p-1 flex items-center justify-center flex-shrink-0 border border-slate-100">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="heading-black text-lg">ALBAYAN KITHAB PORTAL</span>
+              <span className="heading-black text-lg">ALBAYAN PORTAL</span>
             </div>
             <button 
               onClick={() => setIsSidebarOpen(true)}
               className="p-3 rounded-2xl bg-white/80 shadow-xl shadow-slate-200/60 border border-white"
             >
-              <Menu className="w-7 h-7 text-slate-800" />
+              <Menu className="w-6 h-6 text-slate-800" />
             </button>
           </header>
 
@@ -174,7 +201,3 @@ export default function App() {
     </DataProvider>
   );
 }
-
-
-
-
