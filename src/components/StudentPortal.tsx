@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { Book, Student } from '../types';
-import { Check, ShoppingCart, User, BookOpen, Calculator, ChevronRight, Clock } from 'lucide-react';
+import { Check, ShoppingCart, User, BookOpen, Calculator, ChevronRight, Clock, ArrowLeft } from 'lucide-react';
 
 export default function StudentPortal() {
   const { classes, students, orders, placeOrder, loading } = useData();
@@ -76,11 +76,14 @@ export default function StudentPortal() {
     <div className="max-w-4xl mx-auto space-y-10 relative p-6 lg:p-10">
       <header className="text-center space-y-4 sticky top-0 z-20 bg-white/60 backdrop-blur-2xl py-6 -mt-6 lg:-mt-10 -mx-6 px-6 lg:-mx-10 lg:px-10 border-b border-white/40 shadow-sm rounded-b-[2rem]">
         <h2 className="text-5xl heading-black">Student Portal</h2>
-        <p className="text-slate-500 font-bold text-lg">Select your class and name to order books</p>
+        <p className="text-slate-500 font-bold text-lg">
+          {!selectedClass ? 'Step 1: Select your class' : !selectedStudent ? 'Step 2: Select your name' : 'Step 3: Order books'}
+        </p>
       </header>
 
       {/* Class Selection */}
-      <section className="space-y-6">
+      {!selectedClass && (
+      <section className="space-y-6 animate-in slide-in-from-left-4 duration-300">
         <h3 className="text-2xl font-black flex items-center gap-3 text-slate-800">
           <div className="p-2.5 bg-primary/10 rounded-2xl">
             <BookOpen className="w-6 h-6 text-primary" />
@@ -111,16 +114,25 @@ export default function StudentPortal() {
           ))}
         </div>
       </section>
+      )}
 
       {/* Student Selection */}
-      {selectedClass && (
-        <section className="space-y-6 animate-in">
-          <h3 className="text-2xl font-black flex items-center gap-3 text-slate-800">
-            <div className="p-2.5 bg-primary/10 rounded-2xl">
-              <User className="w-6 h-6 text-primary" />
-            </div>
-            Select Student
-          </h3>
+      {selectedClass && !selectedStudent && (
+        <section className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+          <div className="flex items-center gap-4 mb-2">
+            <button 
+              onClick={() => setSelectedClass(null)}
+              className="p-3 bg-white/60 hover:bg-white rounded-2xl shadow-sm transition-all hover:scale-105"
+            >
+              <ArrowLeft className="w-6 h-6 text-slate-600" />
+            </button>
+            <h3 className="text-2xl font-black flex items-center gap-3 text-slate-800">
+              <div className="p-2.5 bg-primary/10 rounded-2xl">
+                <User className="w-6 h-6 text-primary" />
+              </div>
+              Select Student
+            </h3>
+          </div>
           <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
             {filteredStudents.map((student) => (
               <button
@@ -149,7 +161,16 @@ export default function StudentPortal() {
 
       {/* Book Selection or Order Status */}
       {selectedStudent && (
-        <section className="space-y-8 animate-in">
+        <section className="space-y-8 animate-in slide-in-from-right-4 duration-300">
+          <div className="flex items-center gap-4 mb-2">
+            <button 
+              onClick={() => setSelectedStudent(null)}
+              className="p-3 bg-white/60 hover:bg-white rounded-2xl shadow-sm transition-all hover:scale-105"
+            >
+              <ArrowLeft className="w-6 h-6 text-slate-600" />
+            </button>
+            <h3 className="text-xl font-black text-slate-500">Back to Students</h3>
+          </div>
           {studentOrder ? (
             <div className="glass-card rounded-[2.5rem] p-12 text-center space-y-8 border-primary/20 bg-white/60">
               <div className="mx-auto w-24 h-24 rounded-full flex items-center justify-center shadow-2xl bg-emerald-500 text-white shadow-emerald-500/40">

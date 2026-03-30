@@ -4,7 +4,7 @@ import { Student, Book } from '../types';
 import { 
   Users, BookOpen, TrendingUp, ShieldCheck, Search, 
   ChevronRight, FileText, CheckCircle2, Plus, Trash2, 
-  Upload, Settings, X, Save, Edit3, LayoutDashboard, User
+  Upload, Settings, X, Save, Edit3, LayoutDashboard, User, ArrowLeft
 } from 'lucide-react';
 
 export default function UsthadPortal() {
@@ -99,7 +99,7 @@ export default function UsthadPortal() {
           <h2 className="text-5xl heading-black">Usthad Dashboard</h2>
           <div className="flex p-1.5 bg-white/40 backdrop-blur-xl rounded-[1.5rem] w-fit border border-white/60 shadow-lg shadow-slate-200/40">
             <button 
-              onClick={() => setView('orders')}
+              onClick={() => { setView('orders'); setSelectedClass(null); setSelectedStudent(null); }}
               className={`flex items-center gap-2 text-sm font-black px-8 py-3 rounded-[1.25rem] transition-all ${
                 view === 'orders' 
                   ? 'bg-primary text-white shadow-xl shadow-emerald-500/30' 
@@ -110,7 +110,7 @@ export default function UsthadPortal() {
               View Orders
             </button>
             <button 
-              onClick={() => setView('manage')}
+              onClick={() => { setView('manage'); setSelectedClass(null); setSelectedStudent(null); }}
               className={`flex items-center gap-2 text-sm font-black px-8 py-3 rounded-[1.25rem] transition-all ${
                 view === 'manage' 
                   ? 'bg-primary text-white shadow-xl shadow-emerald-500/30' 
@@ -164,49 +164,54 @@ export default function UsthadPortal() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
             {/* Left Column: Class & Student Selection */}
             <div className="lg:col-span-1 space-y-10">
-              <section className="space-y-6">
-                <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                  <div className="p-2.5 bg-primary/10 rounded-2xl">
-                    <BookOpen className="w-6 h-6 text-primary" />
-                  </div>
-                  Select Class
-                </h3>
-                <div className="space-y-3">
-                  {classes.map((cls) => (
-                    <button
-                      key={cls.id}
-                      onClick={() => {
-                        setSelectedClass(cls.id);
-                        setSelectedStudent(null);
-                      }}
-                      className={`w-full flex items-center justify-between py-5 px-8 rounded-[1.5rem] font-black text-lg transition-all border-2 group ${
-                        selectedClass === cls.id
-                          ? 'bg-primary text-white border-primary shadow-2xl shadow-emerald-500/30 scale-[1.02]'
-                          : 'bg-white/40 text-slate-600 border-white/60 hover:border-primary/40 backdrop-blur-md shadow-lg shadow-slate-200/40 hover:bg-white/60'
-                      }`}
-                    >
-                      <span className="flex items-center gap-4">
-                        <span className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm ${
-                          selectedClass === cls.id ? 'bg-white/20' : 'bg-primary/10 text-primary'
-                        }`}>
-                          {cls.id}
-                        </span>
-                        Class {cls.id}
-                      </span>
-                      <ChevronRight className={`w-5 h-5 transition-transform ${selectedClass === cls.id ? 'translate-x-1' : 'opacity-0 group-hover:opacity-100'}`} />
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              {selectedClass && (
-                <section className="space-y-6 animate-in">
+              {!selectedClass ? (
+                <section className="space-y-6">
                   <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
                     <div className="p-2.5 bg-primary/10 rounded-2xl">
-                      <Users className="w-6 h-6 text-primary" />
+                      <BookOpen className="w-6 h-6 text-primary" />
                     </div>
-                    Students in Class {selectedClass}
+                    Select Class
                   </h3>
+                  <div className="space-y-3">
+                    {classes.map((cls) => (
+                      <button
+                        key={cls.id}
+                        onClick={() => {
+                          setSelectedClass(cls.id);
+                          setSelectedStudent(null);
+                        }}
+                        className={`w-full flex items-center justify-between py-5 px-8 rounded-[1.5rem] font-black text-lg transition-all border-2 group bg-white/40 text-slate-600 border-white/60 hover:border-primary/40 backdrop-blur-md shadow-lg shadow-slate-200/40 hover:bg-white/60`}
+                      >
+                        <span className="flex items-center gap-4">
+                          <span className="w-10 h-10 rounded-2xl flex items-center justify-center text-sm bg-primary/10 text-primary">
+                            {cls.id}
+                          </span>
+                          Class {cls.id}
+                        </span>
+                        <ChevronRight className="w-5 h-5 transition-transform opacity-0 group-hover:opacity-100 translate-x-0 group-hover:translate-x-1" />
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ) : (
+                <section className="space-y-6 animate-in">
+                  <div className="flex items-center gap-3 mb-2">
+                    <button 
+                      onClick={() => {
+                        setSelectedClass(null);
+                        setSelectedStudent(null);
+                      }}
+                      className="p-3 bg-white/60 hover:bg-white rounded-2xl shadow-sm transition-all hover:scale-105"
+                    >
+                      <ArrowLeft className="w-6 h-6 text-slate-600" />
+                    </button>
+                    <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                      <div className="p-2 bg-primary/10 rounded-xl">
+                        <Users className="w-5 h-5 text-primary" />
+                      </div>
+                      Class {selectedClass}
+                    </h3>
+                  </div>
                   <div className="space-y-3 max-h-[600px] overflow-y-auto pr-3 no-scrollbar">
                     {filteredStudents.length > 0 ? (
                       filteredStudents.map((student) => {
@@ -317,185 +322,218 @@ export default function UsthadPortal() {
           </div>
         </>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in">
-          {/* Student Management */}
-          <section className="space-y-8">
-            <div className="flex justify-between items-center">
+        <div className="space-y-10 animate-in">
+          {!selectedClass ? (
+            <section className="space-y-6">
               <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-xl">
-                  <Users className="w-6 h-6 text-primary" />
+                <div className="p-2.5 bg-primary/10 rounded-2xl">
+                  <Settings className="w-6 h-6 text-primary" />
                 </div>
-                Manage Students
+                Step 1: Select Class to Manage
               </h3>
-              <div className="flex gap-2">
-                <input 
-                  type="file" 
-                  accept=".csv" 
-                  ref={fileInputRef} 
-                  onChange={handleCSVUpload} 
-                  className="hidden" 
-                />
-                <button 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 text-sm font-black text-primary bg-primary/10 px-4 py-2.5 rounded-2xl hover:bg-primary/20 transition-all border border-primary/20"
-                >
-                  <Upload className="w-4 h-4" />
-                  Upload CSV
-                </button>
-              </div>
-            </div>
-
-            <div className="glass-card p-8 rounded-3xl space-y-8">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <select 
-                  value={selectedClass || ''} 
-                  onChange={(e) => setSelectedClass(parseInt(e.target.value))}
-                  className="bg-white/50 border border-white/20 rounded-2xl px-4 py-3 text-sm font-black text-slate-700 backdrop-blur-sm focus:ring-2 ring-primary/50 outline-none"
-                >
-                  <option value="">Select Class</option>
-                  {classes.map(c => <option key={c.id} value={c.id}>Class {c.id}</option>)}
-                </select>
-                <input 
-                  type="text" 
-                  placeholder="Student Name" 
-                  value={newStudentName}
-                  onChange={(e) => setNewStudentName(e.target.value)}
-                  className="flex-1 bg-white/50 border border-white/20 rounded-2xl px-6 py-3 text-sm font-bold text-slate-700 backdrop-blur-sm focus:ring-2 ring-primary/50 outline-none"
-                />
-                <button 
-                  onClick={handleAddStudent}
-                  className="bg-primary text-white p-3 rounded-2xl hover:bg-emerald-600 shadow-lg shadow-emerald-500/30 transition-all"
-                >
-                  <Plus className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="max-h-[500px] overflow-y-auto space-y-3 pr-2 no-scrollbar">
-                {students.filter(s => !selectedClass || s.classId === selectedClass).map(student => (
-                  <div key={student.id} className="flex items-center justify-between p-5 bg-white/30 rounded-2xl border border-white/10 group hover:bg-white/50 transition-all">
-                    <div>
-                      <p className="font-black text-slate-700">{student.name}</p>
-                      <p className="text-xs text-slate-400 font-bold">Class {student.classId}</p>
-                    </div>
-                    <button 
-                      onClick={() => deleteStudent(student.id)}
-                      className="text-slate-300 hover:text-red-500 transition-colors p-3 bg-white/50 rounded-xl border border-white/20"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                {classes.map((cls) => (
+                  <button
+                    key={cls.id}
+                    onClick={() => setSelectedClass(cls.id)}
+                    className="flex items-center justify-between py-8 px-8 rounded-[2rem] font-black text-xl transition-all border-2 group bg-white/40 text-slate-600 border-white/60 hover:border-primary/40 backdrop-blur-md shadow-lg shadow-slate-200/40 hover:bg-white/60 hover:-translate-y-1 hover:shadow-xl"
+                  >
+                    <span className="flex items-center gap-4">
+                      <span className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl bg-primary/10 text-primary">
+                        {cls.id}
+                      </span>
+                      Class {cls.id}
+                    </span>
+                    <ChevronRight className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-all translate-x-0 group-hover:translate-x-2" />
+                  </button>
                 ))}
               </div>
-            </div>
-          </section>
-
-          {/* Book Management */}
-          <section className="space-y-8">
-            <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-xl">
-                <BookOpen className="w-6 h-6 text-primary" />
-              </div>
-              Manage Books & Prices
-            </h3>
-
-            <div className="glass-card p-8 rounded-3xl space-y-8">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <select 
-                  value={selectedClass || ''} 
-                  onChange={(e) => setSelectedClass(parseInt(e.target.value))}
-                  className="bg-white/50 border border-white/20 rounded-2xl px-4 py-3 text-sm font-black text-slate-700 backdrop-blur-sm focus:ring-2 ring-primary/50 outline-none"
-                >
-                  <option value="">Select Class</option>
-                  {classes.map(c => <option key={c.id} value={c.id}>Class {c.id}</option>)}
-                </select>
-                <input 
-                  type="text" 
-                  placeholder="Book Name" 
-                  value={newBookName}
-                  onChange={(e) => setNewBookName(e.target.value)}
-                  className="flex-1 bg-white/50 border border-white/20 rounded-2xl px-6 py-3 text-sm font-bold text-slate-700 backdrop-blur-sm focus:ring-2 ring-primary/50 outline-none"
-                />
-                <input 
-                  type="number" 
-                  placeholder="Price" 
-                  value={newBookPrice}
-                  onChange={(e) => setNewBookPrice(e.target.value)}
-                  className="w-24 bg-white/50 border border-white/20 rounded-2xl px-4 py-3 text-sm font-black text-primary backdrop-blur-sm focus:ring-2 ring-primary/50 outline-none"
-                />
+            </section>
+          ) : (
+            <div className="space-y-10 animate-in">
+              <div className="flex items-center gap-4 mb-2">
                 <button 
-                  onClick={handleAddBook}
-                  className="bg-primary text-white p-3 rounded-2xl hover:bg-emerald-600 shadow-lg shadow-emerald-500/30 transition-all"
+                  onClick={() => setSelectedClass(null)}
+                  className="p-3 bg-white/60 hover:bg-white rounded-2xl shadow-sm transition-all hover:scale-105"
                 >
-                  <Plus className="w-6 h-6" />
+                  <ArrowLeft className="w-6 h-6 text-slate-600" />
                 </button>
+                <h3 className="text-3xl font-black text-slate-800 flex items-center gap-3">
+                  Managing Class {selectedClass}
+                </h3>
               </div>
 
-              <div className="max-h-[500px] overflow-y-auto space-y-4 pr-2 no-scrollbar">
-                {selectedClass ? (
-                  classes.find(c => c.id === selectedClass)?.books.map(book => (
-                    <div key={book.id} className="flex items-center justify-between p-6 bg-white/30 rounded-2xl border border-white/10 group hover:bg-white/50 transition-all">
-                      <div className="flex-1">
-                        <p className="font-black text-slate-700 text-lg">{book.name}</p>
-                        {editingBookId === book.id ? (
-                          <div className="flex items-center gap-3 mt-3">
-                            <input 
-                              type="number" 
-                              value={editPriceValue}
-                              onChange={(e) => setEditPriceValue(e.target.value)}
-                              className="w-24 bg-white border-2 border-primary rounded-xl px-3 py-1.5 text-sm font-black text-primary shadow-lg shadow-emerald-500/10"
-                              autoFocus
-                            />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                {/* Student Management */}
+                <section className="space-y-8">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-xl">
+                        <Users className="w-5 h-5 text-primary" />
+                      </div>
+                      Manage Students
+                    </h3>
+                    <div className="flex gap-2">
+                      <input 
+                        type="file" 
+                        accept=".csv" 
+                        ref={fileInputRef} 
+                        onChange={handleCSVUpload} 
+                        className="hidden" 
+                      />
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-2 text-sm font-black text-primary bg-primary/10 px-4 py-2.5 rounded-2xl hover:bg-primary/20 transition-all border border-primary/20"
+                      >
+                        <Upload className="w-4 h-4" />
+                        CSV
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="glass-card p-8 rounded-3xl space-y-8">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <input 
+                        type="text" 
+                        placeholder="New Student Name" 
+                        value={newStudentName}
+                        onChange={(e) => setNewStudentName(e.target.value)}
+                        className="flex-1 bg-white/50 border border-white/20 rounded-2xl px-6 py-3 text-sm font-bold text-slate-700 backdrop-blur-sm focus:ring-2 ring-primary/50 outline-none"
+                      />
+                      <button 
+                        onClick={handleAddStudent}
+                        disabled={!newStudentName}
+                        className="bg-primary text-white px-6 py-3 rounded-2xl hover:bg-emerald-600 shadow-lg shadow-emerald-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      >
+                        <Plus className="w-6 h-6" />
+                      </button>
+                    </div>
+
+                    <div className="max-h-[400px] overflow-y-auto space-y-3 pr-2 no-scrollbar">
+                      {filteredStudents.length > 0 ? (
+                        filteredStudents.map(student => (
+                          <div key={student.id} className="flex items-center justify-between p-5 bg-white/30 rounded-2xl border border-white/10 group hover:bg-white/50 transition-all">
+                            <div>
+                              <p className="font-black text-slate-700">{student.name}</p>
+                            </div>
                             <button 
-                              onClick={() => {
-                                updateBookPrice(selectedClass, book.id, parseFloat(editPriceValue));
-                                setEditingBookId(null);
-                              }}
-                              className="bg-emerald-500 text-white p-2 rounded-xl hover:bg-emerald-600 transition-all"
+                              onClick={() => deleteStudent(student.id)}
+                              className="text-slate-300 hover:text-red-500 transition-colors p-3 bg-white/50 rounded-xl border border-white/20"
                             >
-                              <Save className="w-4 h-4" />
-                            </button>
-                            <button 
-                              onClick={() => setEditingBookId(null)}
-                              className="bg-slate-200 text-slate-500 p-2 rounded-xl hover:bg-slate-300 transition-all"
-                            >
-                              <X className="w-4 h-4" />
+                              <Trash2 className="w-5 h-5" />
                             </button>
                           </div>
-                        ) : (
-                          <p className="text-primary font-black text-xl mt-1">₹{book.price}</p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => {
-                            setEditingBookId(book.id);
-                            setEditPriceValue(book.price.toString());
-                          }}
-                          className="text-slate-400 hover:text-primary transition-colors p-3 bg-white/50 rounded-xl border border-white/20"
-                        >
-                          <Edit3 className="w-5 h-5" />
-                        </button>
-                        <button 
-                          onClick={() => deleteBook(selectedClass, book.id)}
-                          className="text-slate-400 hover:text-red-500 transition-colors p-3 bg-white/50 rounded-xl border border-white/20"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
+                        ))
+                      ) : (
+                        <div className="py-12 text-center text-slate-400 font-bold bg-white/30 rounded-2xl border-2 border-dashed border-white/50">
+                          No students in this class.
+                        </div>
+                      )}
                     </div>
-                  ))
-                ) : (
-                  <div className="py-16 text-center text-slate-400 font-black text-lg">
-                    Select a class to manage its books
                   </div>
-                )}
+                </section>
+
+                {/* Book Management */}
+                <section className="space-y-8">
+                  <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-xl">
+                      <BookOpen className="w-5 h-5 text-primary" />
+                    </div>
+                    Manage Books & Prices
+                  </h3>
+
+                  <div className="glass-card p-8 rounded-3xl space-y-8">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <input 
+                        type="text" 
+                        placeholder="Book Name" 
+                        value={newBookName}
+                        onChange={(e) => setNewBookName(e.target.value)}
+                        className="flex-1 bg-white/50 border border-white/20 rounded-2xl px-6 py-3 text-sm font-bold text-slate-700 backdrop-blur-sm focus:ring-2 ring-primary/50 outline-none"
+                      />
+                      <input 
+                        type="number" 
+                        placeholder="₹ Price" 
+                        value={newBookPrice}
+                        onChange={(e) => setNewBookPrice(e.target.value)}
+                        className="w-24 bg-white/50 border border-white/20 rounded-2xl px-4 py-3 text-sm font-black text-primary backdrop-blur-sm focus:ring-2 ring-primary/50 outline-none"
+                      />
+                      <button 
+                        onClick={handleAddBook}
+                        disabled={!newBookName || !newBookPrice}
+                        className="bg-primary text-white p-3 rounded-2xl hover:bg-emerald-600 shadow-lg shadow-emerald-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      >
+                        <Plus className="w-6 h-6" />
+                      </button>
+                    </div>
+
+                    <div className="max-h-[400px] overflow-y-auto space-y-4 pr-2 no-scrollbar">
+                      {classes.find(c => c.id === selectedClass)?.books.length ? (
+                        classes.find(c => c.id === selectedClass)?.books.map(book => (
+                          <div key={book.id} className="flex items-center justify-between p-6 bg-white/30 rounded-2xl border border-white/10 group hover:bg-white/50 transition-all">
+                            <div className="flex-1">
+                              <p className="font-black text-slate-700 text-lg">{book.name}</p>
+                              {editingBookId === book.id ? (
+                                <div className="flex items-center gap-3 mt-3">
+                                  <input 
+                                    type="number" 
+                                    value={editPriceValue}
+                                    onChange={(e) => setEditPriceValue(e.target.value)}
+                                    className="w-24 bg-white border-2 border-primary rounded-xl px-3 py-1.5 text-sm font-black text-primary shadow-lg shadow-emerald-500/10"
+                                    autoFocus
+                                  />
+                                  <button 
+                                    onClick={() => {
+                                      updateBookPrice(selectedClass, book.id, parseFloat(editPriceValue));
+                                      setEditingBookId(null);
+                                    }}
+                                    className="bg-emerald-500 text-white p-2 rounded-xl hover:bg-emerald-600 transition-all"
+                                  >
+                                    <Save className="w-4 h-4" />
+                                  </button>
+                                  <button 
+                                    onClick={() => setEditingBookId(null)}
+                                    className="bg-slate-200 text-slate-500 p-2 rounded-xl hover:bg-slate-300 transition-all"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <p className="text-primary font-black text-xl mt-1">₹{book.price}</p>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => {
+                                  setEditingBookId(book.id);
+                                  setEditPriceValue(book.price.toString());
+                                }}
+                                className="text-slate-400 hover:text-primary transition-colors p-3 bg-white/50 rounded-xl border border-white/20"
+                              >
+                                <Edit3 className="w-5 h-5" />
+                              </button>
+                              <button 
+                                onClick={() => deleteBook(selectedClass, book.id)}
+                                className="text-slate-400 hover:text-red-500 transition-colors p-3 bg-white/50 rounded-xl border border-white/20"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="py-12 text-center text-slate-400 font-bold bg-white/30 rounded-2xl border-2 border-dashed border-white/50">
+                          No books assigned to this class.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
               </div>
             </div>
-          </section>
+          )}
         </div>
       )}
     </div>
   );
 }
-
-
