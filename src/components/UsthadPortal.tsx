@@ -39,8 +39,15 @@ export default function UsthadPortal() {
   const studentBooks = useMemo(() => {
     if (!selectedStudent) return [];
     const classData = classes.find(c => c.id === selectedStudent.classId);
-    return classData ? classData.books : [];
-  }, [selectedStudent, classes]);
+    if (!classData) return [];
+    
+    // If the student has an order, show only the ordered books
+    if (studentOrder) {
+      return classData.books.filter(book => studentOrder.bookIds.includes(book.id));
+    }
+    
+    return classData.books;
+  }, [selectedStudent, classes, studentOrder]);
 
   const totalOrdersCount = useMemo(() => {
     return orders.length;
@@ -284,7 +291,7 @@ export default function UsthadPortal() {
                     <div className="space-y-6">
                       <h5 className="font-black text-slate-800 flex items-center gap-3">
                         <CheckCircle2 className="w-5 h-5 text-primary" />
-                        Book Checklist
+                        {studentOrder ? 'Ordered Books' : 'Class Books (No Order Yet)'}
                       </h5>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {studentBooks.map((book) => (
@@ -298,8 +305,12 @@ export default function UsthadPortal() {
 
                     <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6">
                       <div className="text-center md:text-left">
-                        <p className="text-xs text-slate-400 font-black uppercase tracking-widest">Full Set Total</p>
-                        <p className="text-4xl font-black text-primary">₹{studentBooks.reduce((s, b) => s + b.price, 0)}</p>
+                        <p className="text-xs text-slate-400 font-black uppercase tracking-widest">
+                          {studentOrder ? 'Order Total' : 'Full Set Price'}
+                        </p>
+                        <p className="text-4xl font-black text-primary">
+                          ₹{studentOrder ? studentOrder.totalPrice : studentBooks.reduce((s, b) => s + b.price, 0)}
+                        </p>
                       </div>
                       {studentOrder && (
                         <div className="flex items-center gap-2 text-emerald-600 font-black text-lg bg-emerald-500/10 px-8 py-4 rounded-2xl border border-emerald-500/20">
