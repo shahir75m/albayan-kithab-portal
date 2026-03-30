@@ -4,7 +4,7 @@ import { Book, Student } from '../types';
 import { Check, ShoppingCart, User, BookOpen, Calculator, ChevronRight, Clock } from 'lucide-react';
 
 export default function StudentPortal() {
-  const { classes, students, orders, placeOrder } = useData();
+  const { classes, students, orders, placeOrder, loading } = useData();
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
@@ -23,16 +23,6 @@ export default function StudentPortal() {
     return orders.find(o => o.studentId === selectedStudent.id);
   }, [selectedStudent, orders]);
 
-  const toggleBook = (bookId: string) => {
-    const newSelected = new Set(selectedBooks);
-    if (newSelected.has(bookId)) {
-      newSelected.delete(bookId);
-    } else {
-      newSelected.add(bookId);
-    }
-    setSelectedBooks(newSelected);
-  };
-
   const selectedSum = useMemo(() => {
     return classBooks
       .filter(b => selectedBooks.has(b.id))
@@ -42,6 +32,16 @@ export default function StudentPortal() {
   const fullSetSum = useMemo(() => {
     return classBooks.reduce((sum, b) => sum + b.price, 0);
   }, [classBooks]);
+
+  const toggleBook = (bookId: string) => {
+    const newSelected = new Set(selectedBooks);
+    if (newSelected.has(bookId)) {
+      newSelected.delete(bookId);
+    } else {
+      newSelected.add(bookId);
+    }
+    setSelectedBooks(newSelected);
+  };
 
   const handleClassSelect = (id: number) => {
     setSelectedClass(id);
@@ -59,6 +59,18 @@ export default function StudentPortal() {
       placeOrder(selectedStudent.id, Array.from(selectedBooks), selectedSum);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <div className="text-center">
+          <h2 className="text-2xl font-black text-slate-800">Loading data...</h2>
+          <p className="text-slate-500 font-bold mt-2">This might take up to 60 seconds on the free tier.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-10 relative p-6 lg:p-10">

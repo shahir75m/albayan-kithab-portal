@@ -5,6 +5,7 @@ interface DataContextType {
   classes: ClassData[];
   students: Student[];
   orders: Order[];
+  loading: boolean;
   addStudent: (name: string, classId: number) => void;
   deleteStudent: (id: string) => void;
   addStudentsFromCSV: (csvData: string) => void;
@@ -20,11 +21,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/classes').then(res => res.json()).then(setClasses);
-    fetch('/api/students').then(res => res.json()).then(setStudents);
-    fetch('/api/orders').then(res => res.json()).then(setOrders);
+    const loadData = async () => {
+      try {
+        const [classesRes, studentsRes, ordersRes] = await Promise.all([
+          fetch('/api/classes'),
+          fetch('/api/students'),
+          fetch('/api/orders')
+        ]);
+        if (classesRes.ok) setClasses(await classesRes.json());
+        if (studentsRes.ok) setStudents(await studentsRes.json());
+        if (ordersRes.ok) setOrders(await ordersRes.json());
+      } catch (err) {
+        console.error('Failed to load data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   const addStudent = async (name: string, classId: number) => {
@@ -113,6 +129,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       classes, 
       students, 
       orders,
+      loading,
       addStudent, 
       deleteStudent, 
       addStudentsFromCSV,

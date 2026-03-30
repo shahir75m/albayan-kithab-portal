@@ -11,7 +11,7 @@ export default function UsthadPortal() {
   const { 
     classes, students, addStudent, deleteStudent, 
     addStudentsFromCSV, addBook, deleteBook, updateBookPrice,
-    orders
+    orders, loading
   } = useData();
 
   const [view, setView] = useState<'orders' | 'manage'>('orders');
@@ -45,6 +45,18 @@ export default function UsthadPortal() {
   const totalOrdersCount = useMemo(() => {
     return orders.length;
   }, [orders]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <div className="text-center">
+          <h2 className="text-2xl font-black text-slate-800">Loading data...</h2>
+          <p className="text-slate-500 font-bold mt-2">This might take up to 60 seconds on the free tier.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
