@@ -196,10 +196,12 @@ export default function App() {
               <Routes>
                 <Route path="/student" element={<StudentPortal />} />
                 <Route path="/student/:studentId" element={<StudentPortal />} />
-                <Route 
-                  path="/usthad/*" 
-                  element={isUsthadAuthenticated ? <UsthadPortal /> : <PasswordPrompt onAuthenticated={() => setIsUsthadAuthenticated(true)} />} 
-                />
+                <Route path="/usthad" element={isUsthadAuthenticated ? <UsthadPortal /> : <PasswordPrompt onAuthenticated={() => setIsUsthadAuthenticated(true)} />} />
+                <Route path="/usthad/orders" element={isUsthadAuthenticated ? <UsthadPortal /> : <PasswordPrompt onAuthenticated={() => setIsUsthadAuthenticated(true)} />} />
+                <Route path="/usthad/orders/:classId" element={isUsthadAuthenticated ? <UsthadPortal /> : <PasswordPrompt onAuthenticated={() => setIsUsthadAuthenticated(true)} />} />
+                <Route path="/usthad/summary" element={isUsthadAuthenticated ? <UsthadPortal /> : <PasswordPrompt onAuthenticated={() => setIsUsthadAuthenticated(true)} />} />
+                <Route path="/usthad/manage" element={isUsthadAuthenticated ? <UsthadPortal /> : <PasswordPrompt onAuthenticated={() => setIsUsthadAuthenticated(true)} />} />
+                <Route path="/usthad/manage/:classId" element={isUsthadAuthenticated ? <UsthadPortal /> : <PasswordPrompt onAuthenticated={() => setIsUsthadAuthenticated(true)} />} />
                 <Route path="/" element={<Navigate to="/student" replace />} />
                 <Route path="*" element={<Navigate to="/student" replace />} />
               </Routes>
