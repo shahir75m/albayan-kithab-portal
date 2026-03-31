@@ -11,7 +11,7 @@ import {
 export default function UsthadPortal() {
   const { 
     classes, students, addStudent, deleteStudent, 
-    addStudentsFromCSV, addBook, deleteBook, updateBookPrice,
+    addStudentsFromCSV, addBook, addBooksFromCSV, deleteBook, updateBookPrice,
     orders, loading
   } = useData();
 
@@ -27,6 +27,7 @@ export default function UsthadPortal() {
   const [editPriceValue, setEditPriceValue] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bookFileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredStudents = useMemo(() => {
     return selectedClass ? students.filter((s: Student) => s.classId === selectedClass) : [];
@@ -72,6 +73,24 @@ export default function UsthadPortal() {
           alert('Failed to add students. Please check the CSV format.');
         }
         // Reset file input so the same file can be re-uploaded if needed
+        e.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleBookCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const text = event.target?.result as string;
+        try {
+          await addBooksFromCSV(text);
+          alert('Books added successfully from CSV!');
+        } catch (err) {
+          alert('Failed to add books. Please check the CSV format (BookName,Class,Price).');
+        }
         e.target.value = '';
       };
       reader.readAsText(file);
@@ -411,12 +430,30 @@ export default function UsthadPortal() {
 
                 {/* Book Management */}
                 <section className="space-y-8">
-                  <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-xl">
-                      <BookOpen className="w-5 h-5 text-primary" />
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-xl">
+                          <BookOpen className="w-5 h-5 text-primary" />
+                        </div>
+                        Manage Books & Prices
+                      </h3>
+                      <div className="flex gap-2">
+                        <input 
+                          type="file" 
+                          accept=".csv" 
+                          ref={bookFileInputRef} 
+                          onChange={handleBookCSVUpload} 
+                          className="hidden" 
+                        />
+                        <button 
+                          onClick={() => bookFileInputRef.current?.click()}
+                          className="flex items-center gap-2 text-sm font-black text-primary bg-primary/10 px-4 py-2.5 rounded-2xl hover:bg-primary/20 transition-all border border-primary/20"
+                        >
+                          <Upload className="w-4 h-4" />
+                          CSV
+                        </button>
+                      </div>
                     </div>
-                    Manage Books & Prices
-                  </h3>
 
                   <div className="glass-card p-8 rounded-3xl space-y-8">
                     <div className="flex flex-col sm:flex-row gap-4">

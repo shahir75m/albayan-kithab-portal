@@ -150,6 +150,37 @@ app.put('/api/classes/:classId/books/:bookId', async (req, res) => {
   }
 });
 
+app.post('/api/classes/bulk-books', async (req, res) => {
+  const { books } = req.body;
+  try {
+    const classGroups: Record<number, any[]> = {};
+    books.forEach((book: any) => {
+      const { name, price, classId } = book;
+      if (!name || isNaN(price) || isNaN(classId)) return;
+      if (!classGroups[classId]) classGroups[classId] = [];
+      classGroups[classId].push({
+        id: `${classId}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        name,
+        price
+      });
+    });
+
+    const updates = Object.keys(classGroups).map(async (classIdStr) => {
+      const classId = parseInt(classIdStr);
+      return ClassModel.findOneAndUpdate(
+        { id: classId },
+        { $push: { books: { $each: classGroups[classId] } } }
+      );
+    });
+    
+    await Promise.all(updates);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Bulk book add failed' });
+  }
+});
+
+
 app.get('/api/students', async (req, res) => {
   try {
     const students = await StudentModel.find({}, { _id: 0 }).lean();

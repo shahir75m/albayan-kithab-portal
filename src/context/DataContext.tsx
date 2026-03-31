@@ -10,6 +10,7 @@ interface DataContextType {
   deleteStudent: (id: string) => void;
   addStudentsFromCSV: (csvData: string) => void;
   addBook: (classId: number, name: string, price: number) => void;
+  addBooksFromCSV: (csvData: string) => void;
   deleteBook: (classId: number, bookId: string) => void;
   updateBookPrice: (classId: number, bookId: string, newPrice: number) => void;
   placeOrder: (studentId: string, bookIds: string[], totalPrice: number) => void;
@@ -104,6 +105,40 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const addBooksFromCSV = async (csvData: string) => {
+    const normalized = csvData.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalized.split('\n');
+    const newBooks: { name: string, classId: number, price: number }[] = [];
+    
+    lines.forEach(line => {
+      const [name, classIdStr, priceStr] = line.split(',').map(s => s.trim());
+      if (name && classIdStr && priceStr) {
+        const classId = parseInt(classIdStr);
+        const price = parseFloat(priceStr);
+        if (!isNaN(classId) && !isNaN(price)) {
+          newBooks.push({ name, classId, price });
+        }
+      }
+    });
+
+    if (newBooks.length === 0) {
+      throw new Error('No valid books found in CSV. Format: BookName,ClassId,Price');
+    }
+
+    const res = await fetch('/api/classes/bulk-books', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ books: newBooks })
+    });
+
+    if (res.ok) {
+      const updated = await fetch('/api/classes');
+      if (updated.ok) setClasses(await updated.json());
+    } else {
+      throw new Error('API call failed');
+    }
+  };
+
   const deleteBook = async (classId: number, bookId: string) => {
     await fetch(`/api/classes/${classId}/books/${bookId}`, { method: 'DELETE' });
     setClasses(prev => prev.map(cls => cls.id === classId ? { ...cls, books: cls.books.filter(b => b.id !== bookId) } : cls));
@@ -143,6 +178,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       deleteStudent, 
       addStudentsFromCSV,
       addBook,
+      addBooksFromCSV,
       deleteBook,
       updateBookPrice,
       placeOrder
