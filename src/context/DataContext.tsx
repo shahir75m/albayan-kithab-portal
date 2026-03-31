@@ -118,19 +118,32 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const lines = normalized.split('\n');
     const newBooks: { name: string, classId: number, price: number }[] = [];
     
-    lines.forEach(line => {
-      const [name, classIdStr, priceStr] = line.split(',').map(s => s.trim());
-      if (name && classIdStr && priceStr) {
+    // Auto-detect separator
+    const firstLine = lines[0] || '';
+    let separator = ',';
+    if (firstLine.includes(';')) separator = ';';
+    else if (firstLine.includes('\t')) separator = '\t';
+
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) return;
+      
+      const parts = trimmedLine.split(separator).map(s => s.replace(/^["']|["']$/g, '').trim());
+      if (parts.length >= 3) {
+        const [name, classIdStr, priceStr] = parts;
         const classId = parseInt(classIdStr);
-        const price = parseFloat(priceStr);
-        if (!isNaN(classId) && !isNaN(price)) {
+        const price = parseFloat(priceStr.replace(/[^0-9.]/g, ''));
+        
+        if (!isNaN(classId) && !isNaN(price) && name) {
           newBooks.push({ name, classId, price });
+        } else {
+          console.warn(`Row ${index + 1} skipped (invalid data):`, line);
         }
       }
     });
 
     if (newBooks.length === 0) {
-      throw new Error('No valid books found in CSV. Format: BookName,ClassId,Price');
+      throw new Error(`Format error or empty file. Expected: Name${separator}Class${separator}Price`);
     }
 
     const res = await fetch('/api/classes/bulk-books', {
@@ -143,7 +156,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const updated = await fetch('/api/classes');
       if (updated.ok) setClasses(await updated.json());
     } else {
-      throw new Error('API call failed');
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Server error during bulk import');
     }
   };
 

@@ -89,8 +89,8 @@ export default function UsthadPortal() {
         try {
           await addBooksFromCSV(text);
           alert('Books added successfully from CSV!');
-        } catch (err) {
-          alert('Failed to add books. Please check the CSV format (BookName,Class,Price).');
+        } catch (err: any) {
+          alert(`Import Failed: ${err.message}`);
         }
         e.target.value = '';
       };

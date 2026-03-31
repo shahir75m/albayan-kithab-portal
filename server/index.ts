@@ -14,7 +14,7 @@ dotenv.config({ path: envPath });
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -168,8 +168,12 @@ app.post('/api/classes/bulk-books', async (req, res) => {
       const { name, price, classId } = book;
       if (!name || isNaN(price) || isNaN(classId)) return;
       if (!classGroups[classId]) classGroups[classId] = [];
+      
+      const timestamp = Date.now();
+      const random = Math.floor(Math.random() * 1000);
+      
       classGroups[classId].push({
-        id: `${classId}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        id: `${classId}-${timestamp}-${random}`,
         name,
         price
       });
@@ -179,14 +183,19 @@ app.post('/api/classes/bulk-books', async (req, res) => {
       const classId = parseInt(classIdStr);
       return ClassModel.findOneAndUpdate(
         { id: classId },
-        { $push: { books: { $each: classGroups[classId] } } }
+        { 
+          $push: { books: { $each: classGroups[classId] } },
+          $setOnInsert: { id: classId }
+        },
+        { upsert: true, new: true }
       );
     });
     
     await Promise.all(updates);
     res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: 'Bulk book add failed' });
+  } catch (error: any) {
+    console.error('Bulk book add failed:', error);
+    res.status(500).json({ error: error.message || 'Bulk book add failed' });
   }
 });
 
