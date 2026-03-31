@@ -118,16 +118,26 @@ app.post('/api/classes/:classId/books', async (req, res) => {
   const classId = parseInt(req.params.classId);
   const { name, price } = req.body;
   try {
-    const newBook = { id: `${classId}-${Date.now()}`, name, price };
+    const bookId = `${classId}-${name.trim().toLowerCase().replace(/\s+/g, '_')}`;
+    const newBook = { id: bookId, name, price };
+    
+    // Check if book exists and update or add
     const result = await ClassModel.findOneAndUpdate(
-      { id: classId },
-      { $push: { books: newBook } },
+      { id: classId, 'books.id': bookId },
+      { $set: { 'books.$': newBook } },
       { new: true }
     );
-    if (!result) return res.status(404).json({ error: 'Class not found' });
+    
+    if (!result) {
+      await ClassModel.findOneAndUpdate(
+        { id: classId },
+        { $push: { books: newBook } }
+      );
+    }
+    
     res.json(newBook);
   } catch (error) {
-    res.status(500).json({ error: 'Added failed' });
+    res.status(500).json({ error: 'Add failed' });
   }
 });
 
@@ -169,26 +179,35 @@ app.post('/api/classes/bulk-books', async (req, res) => {
       if (!name || isNaN(price) || isNaN(classId)) return;
       if (!classGroups[classId]) classGroups[classId] = [];
       
-      const timestamp = Date.now();
-      const random = Math.floor(Math.random() * 1000);
+      const bookId = `${classId}-${name.trim().toLowerCase().replace(/\s+/g, '_')}`;
       
       classGroups[classId].push({
-        id: `${classId}-${timestamp}-${random}`,
-        name,
+        id: bookId,
+        name: name.trim(),
         price
       });
     });
 
     const updates = Object.keys(classGroups).map(async (classIdStr) => {
       const classId = parseInt(classIdStr);
-      return ClassModel.findOneAndUpdate(
-        { id: classId },
-        { 
-          $push: { books: { $each: classGroups[classId] } },
-          $setOnInsert: { id: classId }
-        },
-        { upsert: true, new: true }
-      );
+      const newBooks = classGroups[classId];
+      
+      const existingClass = await ClassModel.findOne({ id: classId });
+      if (existingClass) {
+        // Merge strategy: Update existing by ID or add new ones
+        const currentBooks = [...existingClass.books];
+        newBooks.forEach(nb => {
+          const idx = currentBooks.findIndex(b => b.id === nb.id);
+          if (idx > -1) {
+            currentBooks[idx] = nb;
+          } else {
+            currentBooks.push(nb);
+          }
+        });
+        return ClassModel.findOneAndUpdate({ id: classId }, { $set: { books: currentBooks } });
+      } else {
+        return ClassModel.create({ id: classId, books: newBooks });
+      }
     });
     
     await Promise.all(updates);
