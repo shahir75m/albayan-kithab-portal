@@ -82,7 +82,7 @@ export default function App() {
   if (showSplash) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center animate-in fade-in duration-500 z-[100] fixed inset-0">
-        <div className="w-40 h-40 mb-8 animate-bounce duration-1000">
+        <div className="w-40 h-40 mb-8 transform hover:scale-105 transition-transform duration-700 ease-out">
           <img src="/logo.png" alt="Logo" className="w-full h-full object-contain drop-shadow-2xl" />
         </div>
         <div className="flex flex-col items-center gap-2">
