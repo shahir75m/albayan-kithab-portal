@@ -320,6 +320,23 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+app.delete('/api/orders/:studentId', async (req, res) => {
+  const { studentId } = req.params;
+  try {
+    const settings = await SettingsModel.findOne();
+    if (settings?.orderDeadline) {
+      const deadline = new Date(settings.orderDeadline);
+      if (new Date() > deadline) {
+        return res.status(403).json({ error: 'Order period has expired' });
+      }
+    }
+    await OrderModel.deleteMany({ studentId });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Cancellation failed' });
+  }
+});
+
 // Serve React frontend in production
 const distPath = path.resolve(__dirname, '../dist');
 app.use(express.static(distPath));

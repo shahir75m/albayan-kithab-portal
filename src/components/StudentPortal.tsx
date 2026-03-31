@@ -2,10 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { Book, Student, ClassData, Order } from '../types';
-import { Check, ShoppingCart, User, BookOpen, Calculator, ChevronRight, Clock, ArrowLeft } from 'lucide-react';
+import { Check, ShoppingCart, User, BookOpen, Calculator, ChevronRight, Clock, ArrowLeft, X } from 'lucide-react';
 
 export default function StudentPortal() {
-  const { classes, students, orders, placeOrder, loading, orderDeadline } = useData();
+  const { classes, students, orders, placeOrder, cancelOrder, loading, orderDeadline } = useData();
   const { studentId } = useParams<{ studentId?: string }>();
   const navigate = useNavigate();
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
@@ -78,6 +78,17 @@ export default function StudentPortal() {
 
   const handleStudentSelect = (student: Student) => {
     navigate(`/student/${student.id}`);
+  };
+
+  const handleCancelOrder = async () => {
+    if (selectedStudent && window.confirm('നിങ്ങളുടെ ഓർഡർ പൂർണ്ണമായും ഒഴിവാക്കാൻ നിങ്ങൾ ആഗ്രഹിക്കുന്നുണ്ടോ? (Are you sure you want to cancel your entire order?)')) {
+      try {
+        await cancelOrder(selectedStudent.id);
+        setSelectedBooks(new Set());
+      } catch (err: any) {
+        alert(err.message);
+      }
+    }
   };
 
   const handlePlaceOrder = () => {
@@ -333,7 +344,7 @@ export default function StudentPortal() {
                   </div>
                 </div>
 
-                <div className="pt-6">
+                <div className="pt-6 flex flex-col gap-4">
                   <button 
                     onClick={handlePlaceOrder}
                     disabled={selectedBooks.size === 0 || isExpired}
@@ -342,6 +353,16 @@ export default function StudentPortal() {
                     <ShoppingCart className="w-7 h-7" />
                     {isExpired ? 'Ordering Locked' : studentOrder ? 'Update Order' : 'Place Order Now'}
                   </button>
+
+                  {studentOrder && !isExpired && (
+                    <button 
+                      onClick={handleCancelOrder}
+                      className="w-full py-4 text-red-500 font-black flex items-center justify-center gap-2 hover:bg-red-50 rounded-2xl transition-all"
+                    >
+                      <X className="w-5 h-5" />
+                      Cancel My Order
+                    </button>
+                  )}
                 </div>
               </div>
             </>

@@ -14,6 +14,7 @@ interface DataContextType {
   deleteBook: (classId: number, bookId: string) => void;
   updateBookPrice: (classId: number, bookId: string, newPrice: number) => void;
   placeOrder: (studentId: string, bookIds: string[], totalPrice: number) => Promise<void>;
+  cancelOrder: (studentId: string) => Promise<void>;
   orderDeadline: string | null;
   updateOrderDeadline: (date: string) => Promise<void>;
 }
@@ -196,6 +197,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const cancelOrder = async (studentId: string) => {
+    const res = await fetch(`/api/orders/${studentId}`, {
+      method: 'DELETE'
+    });
+    if (res.ok) {
+      setOrders(prev => prev.filter(o => o.studentId !== studentId));
+    } else {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Cancellation failed');
+    }
+  };
+
   const updateOrderDeadline = async (date: string) => {
     const res = await fetch('/api/settings', {
       method: 'POST',
@@ -221,6 +234,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       deleteBook,
       updateBookPrice,
       placeOrder,
+      cancelOrder,
       orderDeadline,
       updateOrderDeadline
     }}>
