@@ -57,7 +57,12 @@ export default function StudentPortal() {
 
   const handleStudentSelect = (student: Student) => {
     setSelectedStudent(student);
-    setSelectedBooks(new Set());
+    const existingOrder = orders.find(o => o.studentId === student.id);
+    if (existingOrder) {
+      setSelectedBooks(new Set(existingOrder.bookIds));
+    } else {
+      setSelectedBooks(new Set());
+    }
   };
 
   const handlePlaceOrder = () => {
@@ -190,7 +195,7 @@ export default function StudentPortal() {
             </div>
           )}
 
-          {studentOrder ? (
+          {studentOrder && isExpired ? (
             <div className="glass-card rounded-[2.5rem] p-12 text-center space-y-8 border-primary/20 bg-white/60">
               <div className="mx-auto w-24 h-24 rounded-full flex items-center justify-center shadow-2xl bg-emerald-500 text-white shadow-emerald-500/40">
                 <Check className="w-12 h-12 stroke-[3px]" />
@@ -200,7 +205,7 @@ export default function StudentPortal() {
                   Order Placed!
                 </h3>
                 <p className="text-slate-500 font-bold text-xl">
-                  Your order has been successfully placed.
+                  Your order has been successfully placed (Locked).
                 </p>
               </div>
               <div className="inline-block bg-white px-10 py-5 rounded-3xl font-black text-3xl text-primary border-2 border-primary/20 shadow-xl shadow-emerald-500/10">
@@ -209,6 +214,17 @@ export default function StudentPortal() {
             </div>
           ) : (
             <>
+              {studentOrder && !isExpired && (
+                <div className="bg-emerald-500/10 p-6 rounded-[2rem] mb-10 border border-emerald-500/20 flex flex-col md:flex-row items-center gap-6 text-center md:text-left animate-in slide-in-from-top-4">
+                  <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-emerald-500/30">
+                    <Check className="w-8 h-8 stroke-[3px]" />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-black text-emerald-600">Existing Order Loaded</h4>
+                    <p className="text-emerald-500/80 font-bold">You can modify your selection below and click **Update Order** until the deadline passes.</p>
+                  </div>
+                </div>
+              )}
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <h3 className="text-2xl font-black flex items-center gap-3 text-slate-800">
                   <div className="p-2.5 bg-primary/10 rounded-2xl">
@@ -286,7 +302,7 @@ export default function StudentPortal() {
                     className="btn-primary w-full py-6 text-2xl disabled:opacity-30 disabled:cursor-not-allowed disabled:grayscale"
                   >
                     <ShoppingCart className="w-7 h-7" />
-                    {isExpired ? 'Ordering Locked' : 'Place Order Now'}
+                    {isExpired ? 'Ordering Locked' : studentOrder ? 'Update Order' : 'Place Order Now'}
                   </button>
                 </div>
               </div>
