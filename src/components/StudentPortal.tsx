@@ -92,8 +92,13 @@ export default function StudentPortal() {
   };
 
   const handlePlaceOrder = () => {
-    if (selectedStudent && selectedBooks.size > 0) {
-      placeOrder(selectedStudent.id, Array.from(selectedBooks), selectedSum);
+    if (selectedStudent) {
+      if (selectedBooks.size > 0) {
+        placeOrder(selectedStudent.id, Array.from(selectedBooks), selectedSum);
+      } else if (studentOrder) {
+        // If they unticked everything and an order existed, cancel it
+        handleCancelOrder();
+      }
     }
   };
 
@@ -347,7 +352,7 @@ export default function StudentPortal() {
                 <div className="pt-6 flex flex-col gap-4">
                   <button 
                     onClick={handlePlaceOrder}
-                    disabled={selectedBooks.size === 0 || isExpired}
+                    disabled={isExpired || (selectedBooks.size === 0 && !studentOrder)}
                     className="btn-primary w-full py-6 text-2xl disabled:opacity-30 disabled:cursor-not-allowed disabled:grayscale"
                   >
                     <ShoppingCart className="w-7 h-7" />
