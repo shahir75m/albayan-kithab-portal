@@ -4,10 +4,16 @@ import { Book, Student, ClassData, Order } from '../types';
 import { Check, ShoppingCart, User, BookOpen, Calculator, ChevronRight, Clock, ArrowLeft } from 'lucide-react';
 
 export default function StudentPortal() {
-  const { classes, students, orders, placeOrder, loading } = useData();
+  const { classes, students, orders, placeOrder, loading, orderDeadline } = useData();
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
+
+  const isExpired = useMemo(() => {
+    if (!orderDeadline) return false;
+    return new Date() > new Date(orderDeadline);
+  }, [orderDeadline]);
+
 
   const filteredStudents = useMemo<Student[]>(() => {
     return selectedClass ? students.filter((s: Student) => s.classId === selectedClass) : [];
@@ -75,7 +81,7 @@ export default function StudentPortal() {
   return (
     <div className="max-w-4xl mx-auto space-y-10 relative p-6 lg:p-10">
       <header className="text-center space-y-4 sticky top-0 z-20 bg-white/60 backdrop-blur-2xl py-6 -mt-6 lg:-mt-10 -mx-6 px-6 lg:-mx-10 lg:px-10 border-b border-white/40 shadow-sm rounded-b-[2rem]">
-        <h2 className="text-5xl heading-black">Student Portal</h2>
+        <h2 className="text-5xl heading-black">Student Panel</h2>
         <p className="text-slate-500 font-bold text-lg">
           {!selectedClass ? 'Step 1: Select your class' : !selectedStudent ? 'Step 2: Select your name' : 'Step 3: Order books'}
         </p>
@@ -171,6 +177,19 @@ export default function StudentPortal() {
             </button>
             <h3 className="text-xl font-black text-slate-500">Back to Students</h3>
           </div>
+
+          {isExpired && (
+            <div className="p-8 rounded-[2rem] bg-red-50 border-2 border-red-100 flex flex-col md:flex-row items-center gap-6 text-center md:text-left animate-in zoom-in-95">
+              <div className="w-16 h-16 bg-red-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-red-500/30 shrink-0">
+                <Clock className="w-8 h-8" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xl font-black text-red-600">Order Period Expired</p>
+                <p className="text-red-500/80 font-bold">The deadline for placing or modification of orders has passed ({new Date(orderDeadline!).toLocaleString()}). Please contact the Usthad for any urgent changes.</p>
+              </div>
+            </div>
+          )}
+
           {studentOrder ? (
             <div className="glass-card rounded-[2.5rem] p-12 text-center space-y-8 border-primary/20 bg-white/60">
               <div className="mx-auto w-24 h-24 rounded-full flex items-center justify-center shadow-2xl bg-emerald-500 text-white shadow-emerald-500/40">
@@ -263,11 +282,11 @@ export default function StudentPortal() {
                 <div className="pt-6">
                   <button 
                     onClick={handlePlaceOrder}
-                    disabled={selectedBooks.size === 0}
+                    disabled={selectedBooks.size === 0 || isExpired}
                     className="btn-primary w-full py-6 text-2xl disabled:opacity-30 disabled:cursor-not-allowed disabled:grayscale"
                   >
                     <ShoppingCart className="w-7 h-7" />
-                    Place Order Now
+                    {isExpired ? 'Ordering Locked' : 'Place Order Now'}
                   </button>
                 </div>
               </div>

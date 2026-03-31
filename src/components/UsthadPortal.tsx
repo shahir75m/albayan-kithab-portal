@@ -5,14 +5,15 @@ import {
   Users, BookOpen, TrendingUp, ShieldCheck, Search, 
   ChevronRight, FileText, CheckCircle2, Plus, Trash2, 
   Upload, Settings, X, Save, Edit3, LayoutDashboard, User, ArrowLeft,
-  Check
+  Check, Clock
 } from 'lucide-react';
+
 
 export default function UsthadPortal() {
   const { 
     classes, students, addStudent, deleteStudent, 
     addStudentsFromCSV, addBook, addBooksFromCSV, deleteBook, updateBookPrice,
-    orders, loading
+    orders, loading, orderDeadline, updateOrderDeadline
   } = useData();
 
   const [view, setView] = useState<'orders' | 'manage'>('orders');
@@ -116,7 +117,7 @@ export default function UsthadPortal() {
     <div className="max-w-6xl mx-auto space-y-10 p-6 lg:p-10">
       <header className="sticky top-0 z-20 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-white/60 backdrop-blur-2xl border-b border-white/40 p-6 rounded-b-[2.5rem] shadow-sm -mt-6 lg:-mt-10 -mx-6 px-6 lg:-mx-10 lg:px-10">
         <div className="space-y-4">
-          <h2 className="text-5xl heading-black">Usthad Dashboard</h2>
+          <h2 className="text-5xl heading-black">Usthad Panel</h2>
           <div className="flex p-1.5 bg-white/40 backdrop-blur-xl rounded-[1.5rem] w-fit border border-white/60 shadow-lg shadow-slate-200/40">
             <button 
               onClick={() => { setView('orders'); setSelectedClass(null); setSelectedStudent(null); }}
@@ -326,6 +327,55 @@ export default function UsthadPortal() {
                 </div>
                 Step 1: Select Class to Manage
               </h3>
+
+              {/* Order Deadline Control */}
+              <div className="glass-card p-10 rounded-[2.5rem] space-y-8 border-primary/10 transition-all hover:border-primary/30">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+                      <Clock className="w-8 h-8 text-primary" />
+                      Order Entry Control
+                    </h3>
+                    <p className="text-slate-500 font-bold max-w-md">
+                      Set a deadline. After this time, the Student Panel will lock and no new orders can be placed.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                    <input 
+                      type="datetime-local" 
+                      value={orderDeadline || ''}
+                      onChange={(e) => updateOrderDeadline(e.target.value)}
+                      className="bg-white/60 border-2 border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-700 outline-none focus:border-primary transition-all shadow-inner"
+                    />
+                    {orderDeadline && (
+                      <button 
+                        onClick={() => { if(confirm('Are you sure you want to clear the deadline and open orders?')) updateOrderDeadline(''); }}
+                        className="bg-red-500/10 text-red-500 px-8 py-4 rounded-2xl font-black hover:bg-red-500 hover:text-white transition-all border border-red-500/20 shadow-lg shadow-red-500/5"
+                      >
+                        Open Orders
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {orderDeadline && (
+                  <div className={`p-6 rounded-3xl border-2 flex items-center gap-4 ${
+                    new Date() > new Date(orderDeadline) 
+                      ? 'bg-red-50 border-red-100 text-red-600' 
+                      : 'bg-emerald-50 border-emerald-100 text-emerald-600'
+                  }`}>
+                    <div className={`p-2 rounded-xl ${new Date() > new Date(orderDeadline) ? 'bg-red-500 text-white' : 'bg-emerald-500 text-white'}`}>
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <span className="font-black">
+                      {new Date() > new Date(orderDeadline) 
+                        ? `Orders are currently LOCKED (Expired on ${new Date(orderDeadline).toLocaleString()})` 
+                        : `Orders are OPEN until ${new Date(orderDeadline).toLocaleString()}`
+                      }
+                    </span>
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                 {classes.map((cls) => (
                   <button

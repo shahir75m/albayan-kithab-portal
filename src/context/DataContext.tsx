@@ -13,7 +13,9 @@ interface DataContextType {
   addBooksFromCSV: (csvData: string) => void;
   deleteBook: (classId: number, bookId: string) => void;
   updateBookPrice: (classId: number, bookId: string, newPrice: number) => void;
-  placeOrder: (studentId: string, bookIds: string[], totalPrice: number) => void;
+  placeOrder: (studentId: string, bookIds: string[], totalPrice: number) => Promise<void>;
+  orderDeadline: string | null;
+  updateOrderDeadline: (date: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -22,19 +24,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [orderDeadline, setOrderDeadline] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [classesRes, studentsRes, ordersRes] = await Promise.all([
+        const [classesRes, studentsRes, ordersRes, settingsRes] = await Promise.all([
           fetch('/api/classes'),
           fetch('/api/students'),
-          fetch('/api/orders')
+          fetch('/api/orders'),
+          fetch('/api/settings')
         ]);
         if (classesRes.ok) setClasses(await classesRes.json());
         if (studentsRes.ok) setStudents(await studentsRes.json());
         if (ordersRes.ok) setOrders(await ordersRes.json());
+        if (settingsRes.ok) {
+          const settings = await settingsRes.json();
+          setOrderDeadline(settings.orderDeadline);
+        }
       } catch (err) {
         console.error('Failed to load data:', err);
       } finally {
@@ -165,6 +173,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
         const filtered = prev.filter(o => o.studentId !== studentId);
         return [...filtered, newOrder];
       });
+    } else {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Order failed');
+    }
+  };
+
+  const updateOrderDeadline = async (date: string) => {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderDeadline: date })
+    });
+    if (res.ok) {
+      setOrderDeadline(date);
     }
   };
 
@@ -181,7 +203,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addBooksFromCSV,
       deleteBook,
       updateBookPrice,
-      placeOrder
+      placeOrder,
+      orderDeadline,
+      updateOrderDeadline
     }}>
       {children}
     </DataContext.Provider>

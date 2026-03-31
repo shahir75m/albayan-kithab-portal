@@ -63,6 +63,12 @@ const OrderSchema = new mongoose.Schema({
 }, { versionKey: false });
 const OrderModel = mongoose.model('Order', OrderSchema);
 
+const SettingsSchema = new mongoose.Schema({
+  orderDeadline: String
+}, { versionKey: false });
+const SettingsModel = mongoose.model('Settings', SettingsSchema);
+
+
 // --- INIT DB ---
 
 async function initDb() {
@@ -87,6 +93,10 @@ async function initDb() {
       await ClassModel.insertMany(INITIAL_DATA.classes);
       await StudentModel.insertMany(INITIAL_DATA.students);
       console.log('Database initialized with default data.');
+    }
+    const settingsCount = await SettingsModel.countDocuments();
+    if (settingsCount === 0) {
+      await SettingsModel.create({ orderDeadline: '' });
     }
   } catch (error) {
     console.error('Failed to initialize db:', error);
@@ -234,9 +244,37 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
+app.get('/api/settings', async (req, res) => {
+  try {
+    const settings = await SettingsModel.findOne({}, { _id: 0 }).lean();
+    res.json(settings || { orderDeadline: '' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to read settings' });
+  }
+});
+
+app.post('/api/settings', async (req, res) => {
+  const { orderDeadline } = req.body;
+  try {
+    await SettingsModel.findOneAndUpdate({}, { orderDeadline }, { upsert: true });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update settings' });
+  }
+});
+
 app.post('/api/orders', async (req, res) => {
   const { studentId, bookIds, totalPrice } = req.body;
   try {
+    // Check deadline
+    const settings = await SettingsModel.findOne();
+    if (settings?.orderDeadline) {
+      const deadline = new Date(settings.orderDeadline);
+      if (new Date() > deadline) {
+        return res.status(403).json({ error: 'Order period has expired' });
+      }
+    }
+
     // remove existing order if exists for that student
     await OrderModel.deleteMany({ studentId });
     

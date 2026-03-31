@@ -86,7 +86,7 @@ export default function App() {
             ALBAYAN KITHAB
           </h1>
           <p className="text-primary font-bold tracking-widest uppercase text-sm mt-2">
-            Portal 2026-27
+            PANEL 2026-27
           </p>
         </div>
       </div>
@@ -115,7 +115,7 @@ export default function App() {
               </div>
               <h1 className="text-lg heading-black leading-tight">
                 ALBAYAN KITHAB
-                <span className="text-primary block text-sm mt-1">PORTAL 2026-27</span>
+                <span className="text-primary block text-sm mt-1">PANEL 2026-27</span>
               </h1>
             </div>
 
@@ -174,7 +174,7 @@ export default function App() {
               <div className="w-10 h-10 bg-white rounded-xl shadow-lg shadow-slate-200/50 p-1 flex items-center justify-center flex-shrink-0 border border-slate-100">
                 <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="heading-black text-lg">ALBAYAN PORTAL</span>
+              <span className="heading-black text-lg">ALBAYAN PANEL</span>
             </div>
             <button 
               onClick={() => setIsSidebarOpen(true)}
