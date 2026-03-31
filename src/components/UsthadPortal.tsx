@@ -277,10 +277,10 @@ export default function UsthadPortal() {
                 <div className="glass-card rounded-[2.5rem] overflow-hidden border-white/40 shadow-2xl">
                   <div className="overflow-x-auto no-scrollbar">
                     <table className="w-full text-left border-collapse min-w-[800px]">
-                      <thead>
-                        <tr className="bg-slate-50/50 backdrop-blur-md border-b border-white/40">
-                          <th className="p-6 font-black text-slate-400 uppercase text-[10px] tracking-widest sticky left-0 bg-slate-50/50 z-10 w-16">#</th>
-                          <th className="p-6 font-black text-slate-400 uppercase text-[10px] tracking-widest sticky left-16 bg-slate-50/50 z-10 min-w-[200px]">Student Name</th>
+                      <thead className="sticky top-0 z-20">
+                        <tr className="bg-slate-100 border-b border-slate-200">
+                          <th className="p-6 font-black text-slate-400 uppercase text-[10px] tracking-widest sticky left-0 bg-slate-100 z-30 w-16">#</th>
+                          <th className="p-6 font-black text-slate-400 uppercase text-[10px] tracking-widest sticky left-16 bg-slate-100 z-30 min-w-[200px]">Student Name</th>
                           {classBooks.map(book => (
                             <th key={book.id} className="p-6 font-black text-slate-400 uppercase text-[10px] tracking-widest text-center min-w-[150px]">
                               <div className="space-y-1">
@@ -297,8 +297,8 @@ export default function UsthadPortal() {
                           const order = ordersMap.get(student.id);
                           return (
                             <tr key={student.id} className="hover:bg-primary/5 transition-colors group">
-                              <td className="p-6 font-bold text-slate-400 text-sm sticky left-0 bg-white/40 backdrop-blur-sm group-hover:bg-primary/5">{idx + 1}</td>
-                              <td className="p-6 font-black text-slate-700 sticky left-16 bg-white/40 backdrop-blur-sm group-hover:bg-primary/5">{student.name}</td>
+                              <td className="p-6 font-bold text-slate-400 text-sm sticky left-0 bg-white z-10 group-hover:bg-slate-50 border-r border-slate-100">{idx + 1}</td>
+                              <td className="p-6 font-black text-slate-700 sticky left-16 bg-white z-10 group-hover:bg-slate-50 border-r border-slate-100">{student.name}</td>
                               {classBooks.map((book: Book) => {
                                 const isOrdered = order?.bookIds.includes(book.id);
                                 return (
@@ -322,9 +322,9 @@ export default function UsthadPortal() {
                           );
                         })}
                       </tbody>
-                      <tfoot className="bg-slate-50/80 backdrop-blur-xl border-t-2 border-primary/10">
+                      <tfoot className="bg-slate-100 border-t-2 border-primary/20 sticky bottom-0 z-20">
                         <tr>
-                          <td colSpan={2} className="p-6 font-black text-slate-800 text-sm uppercase tracking-widest text-right pr-10">Total Orders Quantity</td>
+                          <td colSpan={2} className="p-6 font-black text-slate-800 text-[10px] uppercase tracking-widest text-right sticky left-0 bg-slate-100 z-30 border-r border-slate-200">Total Orders Quantity</td>
                           {classBooks.map((book: Book) => {
                             const count = filteredStudents.filter((s: Student) => ordersMap.get(s.id)?.bookIds.includes(book.id)).length;
                             return (
@@ -401,9 +401,9 @@ export default function UsthadPortal() {
 
             <div className="glass-card rounded-[2.5rem] overflow-hidden border-white/40 shadow-2xl">
               <div className="overflow-x-auto no-scrollbar">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse min-w-[700px]">
                   <thead>
-                    <tr className="bg-slate-50/50 backdrop-blur-md border-b border-white/40">
+                    <tr className="bg-slate-100 border-b border-slate-200">
                       <th className="p-8 font-black text-slate-400 uppercase text-xs tracking-widest">Kithab Name</th>
                       <th className="p-8 font-black text-slate-400 uppercase text-xs tracking-widest text-center">Class</th>
                       <th className="p-8 font-black text-slate-400 uppercase text-xs tracking-widest text-center">Quantity</th>

@@ -249,7 +249,7 @@ export default function StudentPortal() {
                 </button>
               </div>
 
-              <div className="glass-card rounded-[2rem] overflow-hidden">
+              <div className="hidden md:block glass-card rounded-[2rem] overflow-hidden border-white/40 shadow-xl">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50/30 border-b border-white/40">
@@ -282,6 +282,35 @@ export default function StudentPortal() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {classBooks.map((book) => (
+                  <div 
+                    key={book.id} 
+                    onClick={() => toggleBook(book.id)}
+                    className={`p-6 rounded-[2rem] border-2 transition-all flex items-center justify-between gap-4 ${
+                      selectedBooks.has(book.id)
+                        ? 'bg-primary/5 border-primary shadow-xl shadow-emerald-500/10'
+                        : 'bg-white/60 border-white/60'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-2xl border-2 flex items-center justify-center shrink-0 transition-all ${
+                        selectedBooks.has(book.id) 
+                          ? 'bg-primary border-primary text-white shadow-lg' 
+                          : 'bg-white border-slate-200 text-transparent'
+                      }`}>
+                        <Check className="w-6 h-6 stroke-[4px]" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="font-black text-slate-800 text-lg leading-tight">{book.name}</p>
+                        <p className="text-primary font-black text-xl">₹{book.price}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {/* Summary Card */}
