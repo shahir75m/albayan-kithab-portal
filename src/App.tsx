@@ -195,8 +195,9 @@ export default function App() {
             <div className="max-w-7xl mx-auto">
               <Routes>
                 <Route path="/student" element={<StudentPortal />} />
+                <Route path="/student/:studentId" element={<StudentPortal />} />
                 <Route 
-                  path="/usthad" 
+                  path="/usthad/*" 
                   element={isUsthadAuthenticated ? <UsthadPortal /> : <PasswordPrompt onAuthenticated={() => setIsUsthadAuthenticated(true)} />} 
                 />
                 <Route path="/" element={<Navigate to="/student" replace />} />

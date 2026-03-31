@@ -1,13 +1,35 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { Book, Student, ClassData, Order } from '../types';
 import { Check, ShoppingCart, User, BookOpen, Calculator, ChevronRight, Clock, ArrowLeft } from 'lucide-react';
 
 export default function StudentPortal() {
   const { classes, students, orders, placeOrder, loading, orderDeadline } = useData();
+  const { studentId } = useParams<{ studentId?: string }>();
+  const navigate = useNavigate();
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
+
+  // Sync state with URL parameter
+  useEffect(() => {
+    if (studentId) {
+      const student = students.find(s => s.id === studentId);
+      if (student) {
+        setSelectedStudent(student);
+        setSelectedClass(student.classId);
+        // Load existing order if any
+        const existingOrder = orders.find(o => o.studentId === student.id);
+        if (existingOrder) {
+          setSelectedBooks(new Set(existingOrder.bookIds));
+        }
+      }
+    } else {
+      setSelectedStudent(null);
+      // Don't necessarily clear selectedClass here to keep UX smooth
+    }
+  }, [studentId, students, orders]);
 
   const isExpired = useMemo(() => {
     if (!orderDeadline) return false;
@@ -51,18 +73,11 @@ export default function StudentPortal() {
 
   const handleClassSelect = (id: number) => {
     setSelectedClass(id);
-    setSelectedStudent(null);
-    setSelectedBooks(new Set());
+    navigate('/student'); // Clear student selection in URL
   };
 
   const handleStudentSelect = (student: Student) => {
-    setSelectedStudent(student);
-    const existingOrder = orders.find(o => o.studentId === student.id);
-    if (existingOrder) {
-      setSelectedBooks(new Set(existingOrder.bookIds));
-    } else {
-      setSelectedBooks(new Set());
-    }
+    navigate(`/student/${student.id}`);
   };
 
   const handlePlaceOrder = () => {
@@ -132,7 +147,7 @@ export default function StudentPortal() {
         <section className="space-y-6 animate-in slide-in-from-right-4 duration-300">
           <div className="flex items-center gap-4 mb-2">
             <button 
-              onClick={() => setSelectedClass(null)}
+              onClick={() => { setSelectedClass(null); navigate('/student'); }}
               className="p-3 bg-white/60 hover:bg-white rounded-2xl shadow-sm transition-all hover:scale-105"
             >
               <ArrowLeft className="w-6 h-6 text-slate-600" />
@@ -149,21 +164,15 @@ export default function StudentPortal() {
               <button
                 key={student.id}
                 onClick={() => handleStudentSelect(student)}
-                className={`w-full flex items-center justify-between py-5 px-8 rounded-3xl font-black transition-all border-2 text-left group ${
-                  selectedStudent?.id === student.id
-                    ? 'bg-primary text-white border-primary shadow-2xl shadow-emerald-500/30 scale-[1.01]'
-                    : 'bg-white/40 text-slate-600 border-white/60 hover:border-primary/40 backdrop-blur-md shadow-lg shadow-slate-200/50 hover:bg-white/60'
-                }`}
+                className={`w-full flex items-center justify-between py-5 px-8 rounded-3xl font-black transition-all border-2 text-left group bg-white/40 text-slate-600 border-white/60 hover:border-primary/40 backdrop-blur-md shadow-lg shadow-slate-200/50 hover:bg-white/60`}
               >
                 <span className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
-                    selectedStudent?.id === student.id ? 'bg-white/20' : 'bg-slate-100 text-slate-400'
-                  }`}>
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center bg-slate-100 text-slate-400`}>
                     <User className="w-5 h-5" />
                   </div>
                   {student.name}
                 </span>
-                <ChevronRight className={`w-5 h-5 transition-transform ${selectedStudent?.id === student.id ? 'translate-x-1' : 'opacity-0 group-hover:opacity-100'}`} />
+                <ChevronRight className={`w-5 h-5 transition-transform opacity-0 group-hover:opacity-100`} />
               </button>
             ))}
           </div>
@@ -175,7 +184,7 @@ export default function StudentPortal() {
         <section className="space-y-8 animate-in slide-in-from-right-4 duration-300">
           <div className="flex items-center gap-4 mb-2">
             <button 
-              onClick={() => setSelectedStudent(null)}
+              onClick={() => navigate('/student')}
               className="p-3 bg-white/60 hover:bg-white rounded-2xl shadow-sm transition-all hover:scale-105"
             >
               <ArrowLeft className="w-6 h-6 text-slate-600" />

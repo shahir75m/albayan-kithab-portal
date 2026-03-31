@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useParams, useNavigate, useLocation, Link, Routes, Route, Navigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { Student, Book, ClassData, Order } from '../types';
 import { 
@@ -16,9 +17,22 @@ export default function UsthadPortal() {
     orders, loading, orderDeadline, updateOrderDeadline
   } = useData();
 
-  const [view, setView] = useState<'orders' | 'manage' | 'summary'>('orders');
+  const { classId } = useParams<{ classId?: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const view = location.pathname.includes('/manage') ? 'manage' : location.pathname.includes('/summary') ? 'summary' : 'orders';
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+
+  // Sync selectedClass with URL
+  useEffect(() => {
+    if (classId) {
+      setSelectedClass(parseInt(classId));
+    } else {
+      setSelectedClass(null);
+    }
+  }, [classId]);
   
   // Management States
   const [newStudentName, setNewStudentName] = useState('');
@@ -140,8 +154,8 @@ export default function UsthadPortal() {
         <div className="space-y-4">
           <h2 className="text-5xl heading-black">Usthad Panel</h2>
           <div className="flex p-1.5 bg-white/40 backdrop-blur-xl rounded-[1.5rem] w-fit border border-white/60 shadow-lg shadow-slate-200/40">
-            <button 
-              onClick={() => { setView('orders'); setSelectedClass(null); setSelectedStudent(null); }}
+            <Link 
+              to="/usthad/orders"
               className={`flex items-center gap-2 text-sm font-black px-8 py-3 rounded-[1.25rem] transition-all ${
                 view === 'orders' 
                   ? 'bg-primary text-white shadow-xl shadow-emerald-500/30' 
@@ -150,9 +164,9 @@ export default function UsthadPortal() {
             >
               <LayoutDashboard className="w-4 h-4" />
               View Orders
-            </button>
-            <button 
-              onClick={() => { setView('summary'); setSelectedClass(null); setSelectedStudent(null); }}
+            </Link>
+            <Link 
+              to="/usthad/summary"
               className={`flex items-center gap-2 text-sm font-black px-8 py-3 rounded-[1.25rem] transition-all ${
                 view === 'summary' 
                   ? 'bg-primary text-white shadow-xl shadow-emerald-500/30' 
@@ -161,9 +175,9 @@ export default function UsthadPortal() {
             >
               <FileText className="w-4 h-4" />
               Kithab List
-            </button>
-            <button 
-              onClick={() => { setView('manage'); setSelectedClass(null); setSelectedStudent(null); }}
+            </Link>
+            <Link 
+              to="/usthad/manage"
               className={`flex items-center gap-2 text-sm font-black px-8 py-3 rounded-[1.25rem] transition-all ${
                 view === 'manage' 
                   ? 'bg-primary text-white shadow-xl shadow-emerald-500/30' 
@@ -172,7 +186,7 @@ export default function UsthadPortal() {
             >
               <Settings className="w-4 h-4" />
               Manage Data
-            </button>
+            </Link>
           </div>
         </div>
         <div className="flex items-center gap-3 bg-emerald-500/10 text-primary border border-primary/30 px-6 py-3.5 rounded-2xl text-sm font-black shadow-xl shadow-emerald-500/5 backdrop-blur-xl">
@@ -227,7 +241,7 @@ export default function UsthadPortal() {
                   {classes.map((cls) => (
                     <button
                       key={cls.id}
-                      onClick={() => setSelectedClass(cls.id)}
+                      onClick={() => navigate(`/usthad/orders/${cls.id}`)}
                       className={`flex items-center justify-between py-8 px-8 rounded-[2rem] font-black text-xl transition-all border-2 group bg-white/40 text-slate-600 border-white/60 hover:border-primary/40 backdrop-blur-md shadow-lg shadow-slate-200/40 hover:bg-white/60 hover:-translate-y-1`}
                     >
                       <span className="flex items-center gap-4">
@@ -246,7 +260,7 @@ export default function UsthadPortal() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <button 
-                      onClick={() => setSelectedClass(null)}
+                      onClick={() => navigate('/usthad/orders')}
                       className="p-3 bg-white/60 hover:bg-white rounded-2xl shadow-sm transition-all hover:scale-105"
                     >
                       <ArrowLeft className="w-6 h-6 text-slate-600" />
@@ -516,7 +530,7 @@ export default function UsthadPortal() {
                 {classes.map((cls) => (
                   <button
                     key={cls.id}
-                    onClick={() => setSelectedClass(cls.id)}
+                    onClick={() => navigate(`/usthad/manage/${cls.id}`)}
                     className="flex items-center justify-between py-8 px-8 rounded-[2rem] font-black text-xl transition-all border-2 group bg-white/40 text-slate-600 border-white/60 hover:border-primary/40 backdrop-blur-md shadow-lg shadow-slate-200/40 hover:bg-white/60 hover:-translate-y-1 hover:shadow-xl"
                   >
                     <span className="flex items-center gap-4">
@@ -534,7 +548,7 @@ export default function UsthadPortal() {
             <div className="space-y-10 animate-in">
               <div className="flex items-center gap-4 mb-2">
                 <button 
-                  onClick={() => setSelectedClass(null)}
+                  onClick={() => navigate('/usthad/manage')}
                   className="p-3 bg-white/60 hover:bg-white rounded-2xl shadow-sm transition-all hover:scale-105"
                 >
                   <ArrowLeft className="w-6 h-6 text-slate-600" />
