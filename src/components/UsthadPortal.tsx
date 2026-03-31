@@ -16,7 +16,7 @@ export default function UsthadPortal() {
     orders, loading, orderDeadline, updateOrderDeadline
   } = useData();
 
-  const [view, setView] = useState<'orders' | 'manage'>('orders');
+  const [view, setView] = useState<'orders' | 'manage' | 'summary'>('orders');
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   
@@ -48,6 +48,27 @@ export default function UsthadPortal() {
     orders.forEach(o => map.set(o.studentId, o));
     return map;
   }, [orders]);
+
+  const kithabSummary = useMemo(() => {
+    const summaryMap = new Map<string, { id: string, name: string, classId: number, qty: number, price: number }>();
+    
+    classes.forEach(cls => {
+      cls.books.forEach(book => {
+        summaryMap.set(book.id, { id: book.id, name: book.name, classId: cls.id, qty: 0, price: book.price });
+      });
+    });
+
+    orders.forEach(order => {
+      order.bookIds.forEach(bid => {
+        const entry = summaryMap.get(bid);
+        if (entry) entry.qty++;
+      });
+    });
+
+    return Array.from(summaryMap.values())
+      .filter(s => s.qty > 0)
+      .sort((a, b) => a.classId - b.classId || a.name.localeCompare(b.name));
+  }, [classes, orders]);
 
   if (loading) {
     return (
@@ -129,6 +150,17 @@ export default function UsthadPortal() {
             >
               <LayoutDashboard className="w-4 h-4" />
               View Orders
+            </button>
+            <button 
+              onClick={() => { setView('summary'); setSelectedClass(null); setSelectedStudent(null); }}
+              className={`flex items-center gap-2 text-sm font-black px-8 py-3 rounded-[1.25rem] transition-all ${
+                view === 'summary' 
+                  ? 'bg-primary text-white shadow-xl shadow-emerald-500/30' 
+                  : 'text-slate-500 hover:text-primary'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              Kithab List
             </button>
             <button 
               onClick={() => { setView('manage'); setSelectedClass(null); setSelectedStudent(null); }}
@@ -317,6 +349,110 @@ export default function UsthadPortal() {
             )}
           </div>
         </>
+      ) : view === 'summary' ? (
+        <div className="space-y-10 animate-in">
+          {/* Summary Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="glass-card p-10 rounded-[2.5rem] flex items-center gap-8 group hover:border-primary/50 transition-all">
+              <div className="p-5 bg-emerald-500/10 rounded-3xl text-emerald-500 shadow-inner group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500">
+                <CheckCircle2 className="w-10 h-10" />
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em]">Total Books Ordered</p>
+                <p className="text-4xl font-black text-slate-800">
+                  {kithabSummary.reduce((sum, item) => sum + item.qty, 0)}
+                </p>
+              </div>
+            </div>
+            <div className="glass-card p-10 rounded-[2.5rem] flex items-center gap-8 group hover:border-primary/50 transition-all">
+              <div className="p-5 bg-primary/10 rounded-3xl text-primary shadow-inner group-hover:bg-primary group-hover:text-white transition-all duration-500">
+                <TrendingUp className="w-10 h-10" />
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em]">Total Expected Collection</p>
+                <p className="text-4xl font-black text-slate-800">
+                  ₹{kithabSummary.reduce((sum, item) => sum + (item.qty * item.price), 0)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <section className="space-y-6">
+            <h3 className="text-3xl font-black text-slate-800 flex items-center gap-3 px-2">
+              <div className="p-2.5 bg-primary/10 rounded-2xl">
+                <FileText className="w-6 h-6 text-primary" />
+              </div>
+              Overall Kithab Sales Summary
+            </h3>
+
+            <div className="glass-card rounded-[2.5rem] overflow-hidden border-white/40 shadow-2xl">
+              <div className="overflow-x-auto no-scrollbar">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50/50 backdrop-blur-md border-b border-white/40">
+                      <th className="p-8 font-black text-slate-400 uppercase text-xs tracking-widest">Kithab Name</th>
+                      <th className="p-8 font-black text-slate-400 uppercase text-xs tracking-widest text-center">Class</th>
+                      <th className="p-8 font-black text-slate-400 uppercase text-xs tracking-widest text-center">Quantity</th>
+                      <th className="p-8 font-black text-slate-400 uppercase text-xs tracking-widest text-center">Price</th>
+                      <th className="p-8 font-black text-slate-400 uppercase text-xs tracking-widest text-right">Total Sum</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/20">
+                    {kithabSummary.map((item) => (
+                      <tr key={item.id} className="hover:bg-primary/5 transition-colors group">
+                        <td className="p-8">
+                          <p className="font-black text-xl text-slate-800 group-hover:text-primary transition-colors">{item.name}</p>
+                        </td>
+                        <td className="p-8 text-center">
+                          <span className="px-5 py-2 bg-slate-100/50 text-slate-600 rounded-xl font-black group-hover:bg-white group-hover:shadow-md transition-all">
+                            Class {item.classId}
+                          </span>
+                        </td>
+                        <td className="p-8 text-center">
+                          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500 text-white font-black text-xl shadow-lg shadow-emerald-500/20">
+                            {item.qty}
+                          </div>
+                        </td>
+                        <td className="p-8 text-center font-bold text-slate-500">₹{item.price}</td>
+                        <td className="p-8 text-right">
+                          <span className="font-black text-2xl text-primary">₹{item.qty * item.price}</span>
+                        </td>
+                      </tr>
+                    ))}
+                    {kithabSummary.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="p-20 text-center">
+                          <div className="flex flex-col items-center gap-4 text-slate-400">
+                            <BookOpen className="w-16 h-16 opacity-20" />
+                            <p className="text-xl font-bold">No orders placed yet.</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                  {kithabSummary.length > 0 && (
+                    <tfoot className="bg-slate-50/80 backdrop-blur-xl border-t-2 border-primary/10">
+                      <tr>
+                        <td colSpan={2} className="p-8 font-black text-slate-800 text-sm uppercase tracking-widest text-right">Grand Total</td>
+                        <td className="p-8 text-center">
+                          <div className="w-12 h-12 inline-flex items-center justify-center font-black text-2xl text-emerald-600">
+                             {kithabSummary.reduce((sum, i) => sum + i.qty, 0)}
+                          </div>
+                        </td>
+                        <td></td>
+                        <td className="p-8 text-right">
+                          <div className="font-black text-emerald-600 text-3xl">
+                            ₹{kithabSummary.reduce((sum, i) => sum + (i.qty * i.price), 0)}
+                          </div>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
+              </div>
+            </div>
+          </section>
+        </div>
       ) : (
         <div className="space-y-10 animate-in">
           {!selectedClass ? (

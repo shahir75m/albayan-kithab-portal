@@ -27,29 +27,32 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [orderDeadline, setOrderDeadline] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [classesRes, studentsRes, ordersRes, settingsRes] = await Promise.all([
-          fetch('/api/classes'),
-          fetch('/api/students'),
-          fetch('/api/orders'),
-          fetch('/api/settings')
-        ]);
-        if (classesRes.ok) setClasses(await classesRes.json());
-        if (studentsRes.ok) setStudents(await studentsRes.json());
-        if (ordersRes.ok) setOrders(await ordersRes.json());
-        if (settingsRes.ok) {
-          const settings = await settingsRes.json();
-          setOrderDeadline(settings.orderDeadline);
-        }
-      } catch (err) {
-        console.error('Failed to load data:', err);
-      } finally {
-        setLoading(false);
+  const fetchData = async (isInitial = false) => {
+    try {
+      const [classesRes, studentsRes, ordersRes, settingsRes] = await Promise.all([
+        fetch('/api/classes'),
+        fetch('/api/students'),
+        fetch('/api/orders'),
+        fetch('/api/settings')
+      ]);
+      if (classesRes.ok) setClasses(await classesRes.json());
+      if (studentsRes.ok) setStudents(await studentsRes.json());
+      if (ordersRes.ok) setOrders(await ordersRes.json());
+      if (settingsRes.ok) {
+        const settings = await settingsRes.json();
+        setOrderDeadline(settings.orderDeadline);
       }
-    };
-    loadData();
+    } catch (err) {
+      console.error('Failed to load data:', err);
+    } finally {
+      if (isInitial) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData(true);
+    const interval = setInterval(() => fetchData(false), 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const addStudent = async (name: string, classId: number) => {
