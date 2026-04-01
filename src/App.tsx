@@ -22,7 +22,7 @@ const PasswordPrompt = ({ onAuthenticated }: { onAuthenticated: () => void }) =>
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'usthad@admin') {
+    if (password === 'usthad@ADMIN') {
       onAuthenticated();
     } else {
       setError('Incorrect password');
